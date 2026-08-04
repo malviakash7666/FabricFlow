@@ -51,19 +51,17 @@ const ProtectedRoute: React.FC<{ children: React.ReactElement; allowedRole?: "bu
 };
 
 const App: React.FC = () => {
-  const { loadProfile, token } = useAuth();
+  const { checkSession } = useAuth();
   const [initLoading, setInitLoading] = useState(true);
 
   // Initialize session
   useEffect(() => {
     const initSession = async () => {
-      if (token) {
-        await loadProfile();
-      }
+      await checkSession();
       setInitLoading(false);
     };
     initSession();
-  }, [token]);
+  }, []);
 
   if (initLoading) {
     return <FullScreenLoader />;

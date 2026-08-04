@@ -16,7 +16,7 @@ interface AuthState {
 }
 
 const initialState: AuthState = {
-  token: localStorage.getItem("token") || null,
+  token: null,
   user: localStorage.getItem("user") ? JSON.parse(localStorage.getItem("user")!) : null,
   profile: localStorage.getItem("profile") ? JSON.parse(localStorage.getItem("profile")!) : null,
   loading: false,
@@ -38,7 +38,6 @@ const authSlice = createSlice({
       state.token = accessToken;
       state.user = user;
       state.error = null;
-      localStorage.setItem("token", accessToken);
       localStorage.setItem("user", JSON.stringify(user));
     },
     setProfile(state, action: PayloadAction<any>) {
@@ -53,7 +52,6 @@ const authSlice = createSlice({
       state.user = null;
       state.profile = null;
       state.error = null;
-      localStorage.removeItem("token");
       localStorage.removeItem("user");
       localStorage.removeItem("profile");
     },

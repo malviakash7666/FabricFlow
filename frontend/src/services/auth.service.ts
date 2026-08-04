@@ -20,4 +20,9 @@ export const authService = {
     const response = await api.get("/users/me");
     return response.data;
   },
+
+  async refreshToken() {
+    const response = await api.post("/users/refresh-token");
+    return response.data;
+  },
 };

@@ -15,7 +15,7 @@ const api = axios.create({
 // Request Interceptor: Attach access token if present
 api.interceptors.request.use(
   (config) => {
-    const token = store.getState().auth.token || localStorage.getItem("token");
+    const token = store.getState().auth.token;
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }

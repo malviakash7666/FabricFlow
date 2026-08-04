@@ -90,6 +90,33 @@ export const useAuth = () => {
     }
   };
 
+  const checkSession = async () => {
+    const storedUser = localStorage.getItem("user");
+    if (!storedUser) {
+      return null;
+    }
+    dispatch(setLoading(true));
+    try {
+      const data = await authService.refreshToken();
+      const userObj = JSON.parse(storedUser);
+      dispatch(setCredentials({ accessToken: data.accessToken, user: userObj }));
+
+      let profileData;
+      if (userObj.role === "buyer") {
+        profileData = await buyerService.getProfile();
+      } else {
+        profileData = await supplierService.getProfile();
+      }
+      dispatch(setProfile(profileData.data));
+      return userObj;
+    } catch (err) {
+      dispatch(logoutAction());
+      return null;
+    } finally {
+      dispatch(setLoading(false));
+    }
+  };
+
   const submitOnboarding = async (onboardingDetails: any) => {
     dispatch(setLoading(true));
     try {
@@ -142,6 +169,7 @@ export const useAuth = () => {
     registerUser,
     logoutUser,
     loadProfile,
+    checkSession,
     submitOnboarding,
     updateProfile,
   };
