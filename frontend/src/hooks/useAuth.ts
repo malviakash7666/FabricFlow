@@ -91,15 +91,17 @@ export const useAuth = () => {
   };
 
   const checkSession = async () => {
-    const storedUser = localStorage.getItem("user");
-    if (!storedUser) {
-      return null;
-    }
     dispatch(setLoading(true));
     try {
-      const data = await authService.refreshToken();
-      const userObj = JSON.parse(storedUser);
-      dispatch(setCredentials({ accessToken: data.accessToken, user: userObj }));
+      const refreshData = await authService.refreshToken();
+      const { accessToken } = refreshData;
+
+      dispatch(setCredentials({ accessToken, user: null }));
+
+      const meData = await authService.getMe();
+      const { user: userObj } = meData;
+
+      dispatch(setCredentials({ accessToken, user: userObj }));
 
       let profileData;
       if (userObj.role === "buyer") {
