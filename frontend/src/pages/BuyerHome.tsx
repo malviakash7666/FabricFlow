@@ -27,6 +27,7 @@ interface Product {
   id: string;
   name: string;
   category: string;
+  description?: string;
   price: number;
   stock: number;
   imageUrls: string[];
@@ -112,7 +113,7 @@ export const BuyerHome: React.FC = () => {
     loadCatalog({});
   };
 
-  const handleOpenDetail = (prod: Product) => {
+  const handleOpenDetail = (prod: any) => {
     setSelectedProduct(prod);
     setDetailQty(prod.moq); // Start with MOQ limit
   };
