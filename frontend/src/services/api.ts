@@ -48,8 +48,13 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    // Avoid infinite loops and handle only 401 unauthorized
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    // Avoid infinite loops and skip token refresh for login, registration, or token refresh endpoints
+    const isAuthRequest = 
+      originalRequest.url?.includes("/users/login") || 
+      originalRequest.url?.includes("/users/register") || 
+      originalRequest.url?.includes("/users/refresh-token");
+
+    if (error.response?.status === 401 && !originalRequest._retry && !isAuthRequest) {
       // If we are already refreshing, queue the request
       if (isRefreshing) {
         return new Promise((resolve, reject) => {

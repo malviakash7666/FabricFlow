@@ -10,7 +10,7 @@ export const OnboardingPage: React.FC = () => {
   // Redirect if already onboarded
   useEffect(() => {
     if (profile?.isOnboarded) {
-      navigate(user?.role === "buyer" ? "/buyer/home" : "/supplier/dashboard");
+      navigate(user?.role === "buyer" ? "/marketplace" : "/supplier/dashboard");
     }
   }, [profile, user, navigate]);
 
@@ -200,7 +200,7 @@ export const OnboardingPage: React.FC = () => {
       }
 
       await loadProfile();
-      navigate(user?.role === "buyer" ? "/buyer/home" : "/supplier/dashboard");
+      navigate(user?.role === "buyer" ? "/marketplace" : "/supplier/dashboard");
     } catch (err: any) {
       setError(err.message || "Something went wrong.");
     } finally {
@@ -229,22 +229,22 @@ export const OnboardingPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white py-12 px-6 relative overflow-hidden">
+    <div className="min-h-screen bg-slate-50 text-slate-800 py-12 px-6 relative overflow-hidden">
       {/* Background Glow */}
-      <div className="absolute top-1/4 left-1/4 h-[500px] w-[500px] rounded-full bg-violet-600/5 blur-[120px] pointer-events-none"></div>
+      <div className="absolute top-1/4 left-1/4 h-[500px] w-[500px] rounded-full bg-teal-700/5 blur-[120px] pointer-events-none"></div>
 
       <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 relative z-10">
         
         {/* Onboarding AI assistant Card (Left / Top) */}
-        <div className="lg:col-span-4 bg-slate-900 border border-slate-800 rounded-2xl p-6 flex flex-col justify-between h-[450px]">
+        <div className="lg:col-span-4 bg-white border border-slate-200 shadow-xs rounded-2xl p-6 flex flex-col justify-between h-[450px]">
           <div>
             <div className="flex items-center gap-2 mb-4">
-              <div className="h-8 w-8 rounded-lg bg-violet-600 flex items-center justify-center">
+              <div className="h-8 w-8 rounded-lg bg-teal-700 flex items-center justify-center">
                 <Sparkles className="h-4.5 w-4.5 text-white" />
               </div>
               <h3 className="font-bold text-sm">AI Onboarding Assistant</h3>
             </div>
-            <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 text-xs text-slate-300 leading-relaxed max-h-[280px] overflow-y-auto">
+            <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 text-xs text-slate-700 leading-relaxed max-h-[280px] overflow-y-auto">
               {aiResponse}
             </div>
           </div>
@@ -254,11 +254,11 @@ export const OnboardingPage: React.FC = () => {
               value={aiMessage}
               onChange={(e) => setAiMessage(e.target.value)}
               placeholder="Describe your business..."
-              className="flex-1 rounded-xl bg-slate-950 border border-slate-800 px-3 py-2 text-xs focus:border-violet-600 focus:outline-none focus:ring-1 focus:ring-violet-600"
+              className="flex-1 rounded-xl bg-slate-50 border border-slate-200 px-3 py-2 text-xs focus:border-teal-700 focus:outline-none focus:ring-1 focus:ring-violet-600"
             />
             <button
               onClick={handleAIChat}
-              className="p-2 rounded-xl bg-violet-600 hover:bg-violet-500 text-white cursor-pointer"
+              className="p-2 rounded-xl bg-teal-700 hover:bg-teal-850 text-white cursor-pointer"
             >
               <Send className="h-3.5 w-3.5" />
             </button>
@@ -266,8 +266,8 @@ export const OnboardingPage: React.FC = () => {
         </div>
 
         {/* Traditional Form Card (Right / Bottom) */}
-        <div className="lg:col-span-8 bg-slate-900 border border-slate-800 rounded-2xl p-8 shadow-2xl">
-          <div className="border-b border-slate-800 pb-4 mb-6">
+        <div className="lg:col-span-8 bg-white border border-slate-200 shadow-xs rounded-2xl p-8 shadow-2xl">
+          <div className="border-b border-slate-200 pb-4 mb-6">
             <h2 className="text-2xl font-extrabold">Complete Your Business Profile</h2>
             <p className="text-slate-400 text-xs mt-1">
               Please finalize your company specifications before listing or purchasing fabrics.
@@ -295,7 +295,7 @@ export const OnboardingPage: React.FC = () => {
                       value={buyerName}
                       onChange={(e) => setBuyerName(e.target.value)}
                       placeholder="e.g. Zara Garments Ltd"
-                      className="mt-2 block w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 text-sm focus:border-violet-600 focus:outline-none focus:ring-1 focus:ring-violet-600"
+                      className="mt-2 block w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-sm focus:border-teal-700 focus:outline-none focus:ring-1 focus:ring-violet-600"
                     />
                   </div>
                   <div>
@@ -305,7 +305,7 @@ export const OnboardingPage: React.FC = () => {
                     <select
                       value={buyerType}
                       onChange={(e) => setBuyerType(e.target.value)}
-                      className="mt-2 block w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 text-sm focus:border-violet-600 focus:outline-none focus:ring-1 focus:ring-violet-600"
+                      className="mt-2 block w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-sm focus:border-teal-700 focus:outline-none focus:ring-1 focus:ring-violet-600"
                     >
                       <option>Garment Manufacturer</option>
                       <option>Fashion Label / Brand</option>
@@ -323,7 +323,7 @@ export const OnboardingPage: React.FC = () => {
                     <select
                       value={buyerIndustry}
                       onChange={(e) => setBuyerIndustry(e.target.value)}
-                      className="mt-2 block w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 text-sm focus:border-violet-600 focus:outline-none focus:ring-1 focus:ring-violet-600"
+                      className="mt-2 block w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-sm focus:border-teal-700 focus:outline-none focus:ring-1 focus:ring-violet-600"
                     >
                       <option>Apparel</option>
                       <option>Home Decor & Furnishing</option>
@@ -341,7 +341,7 @@ export const OnboardingPage: React.FC = () => {
                       value={buyerPhone}
                       onChange={(e) => setBuyerPhone(e.target.value)}
                       placeholder="+91 98765 43210"
-                      className="mt-2 block w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 text-sm focus:border-violet-600 focus:outline-none focus:ring-1 focus:ring-violet-600"
+                      className="mt-2 block w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-sm focus:border-teal-700 focus:outline-none focus:ring-1 focus:ring-violet-600"
                     />
                   </div>
                 </div>
@@ -357,7 +357,7 @@ export const OnboardingPage: React.FC = () => {
                       value={buyerCity}
                       onChange={(e) => setBuyerCity(e.target.value)}
                       placeholder="e.g. Mumbai"
-                      className="mt-2 block w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 text-sm focus:border-violet-600 focus:outline-none focus:ring-1 focus:ring-violet-600"
+                      className="mt-2 block w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-sm focus:border-teal-700 focus:outline-none focus:ring-1 focus:ring-violet-600"
                     />
                   </div>
                   <div>
@@ -370,7 +370,7 @@ export const OnboardingPage: React.FC = () => {
                       value={buyerState}
                       onChange={(e) => setBuyerState(e.target.value)}
                       placeholder="e.g. Maharashtra"
-                      className="mt-2 block w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 text-sm focus:border-violet-600 focus:outline-none focus:ring-1 focus:ring-violet-600"
+                      className="mt-2 block w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-sm focus:border-teal-700 focus:outline-none focus:ring-1 focus:ring-violet-600"
                     />
                   </div>
                   <div>
@@ -382,7 +382,7 @@ export const OnboardingPage: React.FC = () => {
                       required
                       value={buyerCountry}
                       onChange={(e) => setBuyerCountry(e.target.value)}
-                      className="mt-2 block w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 text-sm focus:border-violet-600 focus:outline-none focus:ring-1 focus:ring-violet-600"
+                      className="mt-2 block w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-sm focus:border-teal-700 focus:outline-none focus:ring-1 focus:ring-violet-600"
                     />
                   </div>
                 </div>
@@ -397,7 +397,7 @@ export const OnboardingPage: React.FC = () => {
                     onChange={(e) => setBuyerAddress(e.target.value)}
                     placeholder="Enter complete company shipping/billing address details..."
                     rows={3}
-                    className="mt-2 block w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 text-sm focus:border-violet-600 focus:outline-none focus:ring-1 focus:ring-violet-600"
+                    className="mt-2 block w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-sm focus:border-teal-700 focus:outline-none focus:ring-1 focus:ring-violet-600"
                   />
                 </div>
 
@@ -414,8 +414,8 @@ export const OnboardingPage: React.FC = () => {
                         onClick={() => handleFabricCheckbox(fab)}
                         className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
                           buyerFabrics.includes(fab)
-                            ? "bg-violet-600 border-violet-600 text-white"
-                            : "bg-slate-950 border-slate-800 text-slate-400 hover:text-white"
+                            ? "bg-teal-700 border-teal-700 text-white"
+                            : "bg-slate-50 border-slate-200 text-slate-400 hover:text-white"
                         }`}
                       >
                         {fab}
@@ -433,7 +433,7 @@ export const OnboardingPage: React.FC = () => {
                       type="number"
                       value={buyerQty}
                       onChange={(e) => setBuyerQty(parseInt(e.target.value))}
-                      className="mt-2 block w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 text-sm focus:border-violet-600 focus:outline-none focus:ring-1 focus:ring-violet-600"
+                      className="mt-2 block w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-sm focus:border-teal-700 focus:outline-none focus:ring-1 focus:ring-violet-600"
                     />
                   </div>
                   <div>
@@ -444,7 +444,7 @@ export const OnboardingPage: React.FC = () => {
                       type="number"
                       value={buyerBudgetMin}
                       onChange={(e) => setBuyerBudgetMin(parseInt(e.target.value))}
-                      className="mt-2 block w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 text-sm focus:border-violet-600 focus:outline-none focus:ring-1 focus:ring-violet-600"
+                      className="mt-2 block w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-sm focus:border-teal-700 focus:outline-none focus:ring-1 focus:ring-violet-600"
                     />
                   </div>
                   <div>
@@ -455,7 +455,7 @@ export const OnboardingPage: React.FC = () => {
                       type="number"
                       value={buyerBudgetMax}
                       onChange={(e) => setBuyerBudgetMax(parseInt(e.target.value))}
-                      className="mt-2 block w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 text-sm focus:border-violet-600 focus:outline-none focus:ring-1 focus:ring-violet-600"
+                      className="mt-2 block w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-sm focus:border-teal-700 focus:outline-none focus:ring-1 focus:ring-violet-600"
                     />
                   </div>
                 </div>
@@ -474,7 +474,7 @@ export const OnboardingPage: React.FC = () => {
                       value={supplierName}
                       onChange={(e) => setSupplierName(e.target.value)}
                       placeholder="e.g. Gujarat Weaving Mills"
-                      className="mt-2 block w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 text-sm focus:border-violet-600 focus:outline-none focus:ring-1 focus:ring-violet-600"
+                      className="mt-2 block w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-sm focus:border-teal-700 focus:outline-none focus:ring-1 focus:ring-violet-600"
                     />
                   </div>
                   <div>
@@ -484,7 +484,7 @@ export const OnboardingPage: React.FC = () => {
                     <select
                       value={supplierType}
                       onChange={(e) => setSupplierType(e.target.value)}
-                      className="mt-2 block w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 text-sm focus:border-violet-600 focus:outline-none focus:ring-1 focus:ring-violet-600"
+                      className="mt-2 block w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-sm focus:border-teal-700 focus:outline-none focus:ring-1 focus:ring-violet-600"
                     >
                       <option>Textile Mill</option>
                       <option>Weaving & Spinning Factory</option>
@@ -505,7 +505,7 @@ export const OnboardingPage: React.FC = () => {
                       value={supplierContact}
                       onChange={(e) => setSupplierContact(e.target.value)}
                       placeholder="e.g. Anil Patel"
-                      className="mt-2 block w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 text-sm focus:border-violet-600 focus:outline-none focus:ring-1 focus:ring-violet-600"
+                      className="mt-2 block w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-sm focus:border-teal-700 focus:outline-none focus:ring-1 focus:ring-violet-600"
                     />
                   </div>
                   <div>
@@ -518,7 +518,7 @@ export const OnboardingPage: React.FC = () => {
                       value={supplierPhone}
                       onChange={(e) => setSupplierPhone(e.target.value)}
                       placeholder="+91 99887 76655"
-                      className="mt-2 block w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 text-sm focus:border-violet-600 focus:outline-none focus:ring-1 focus:ring-violet-600"
+                      className="mt-2 block w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-sm focus:border-teal-700 focus:outline-none focus:ring-1 focus:ring-violet-600"
                     />
                   </div>
                   <div>
@@ -530,7 +530,7 @@ export const OnboardingPage: React.FC = () => {
                       required
                       value={supplierEmail}
                       onChange={(e) => setSupplierEmail(e.target.value)}
-                      className="mt-2 block w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 text-sm focus:border-violet-600 focus:outline-none focus:ring-1 focus:ring-violet-600"
+                      className="mt-2 block w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-sm focus:border-teal-700 focus:outline-none focus:ring-1 focus:ring-violet-600"
                     />
                   </div>
                 </div>
@@ -546,7 +546,7 @@ export const OnboardingPage: React.FC = () => {
                       value={supplierCity}
                       onChange={(e) => setSupplierCity(e.target.value)}
                       placeholder="e.g. Surat"
-                      className="mt-2 block w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 text-sm focus:border-violet-600 focus:outline-none focus:ring-1 focus:ring-violet-600"
+                      className="mt-2 block w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-sm focus:border-teal-700 focus:outline-none focus:ring-1 focus:ring-violet-600"
                     />
                   </div>
                   <div>
@@ -559,7 +559,7 @@ export const OnboardingPage: React.FC = () => {
                       value={supplierState}
                       onChange={(e) => setSupplierState(e.target.value)}
                       placeholder="e.g. Gujarat"
-                      className="mt-2 block w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 text-sm focus:border-violet-600 focus:outline-none focus:ring-1 focus:ring-violet-600"
+                      className="mt-2 block w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-sm focus:border-teal-700 focus:outline-none focus:ring-1 focus:ring-violet-600"
                     />
                   </div>
                   <div>
@@ -571,7 +571,7 @@ export const OnboardingPage: React.FC = () => {
                       required
                       value={supplierCountry}
                       onChange={(e) => setSupplierCountry(e.target.value)}
-                      className="mt-2 block w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 text-sm focus:border-violet-600 focus:outline-none focus:ring-1 focus:ring-violet-600"
+                      className="mt-2 block w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-sm focus:border-teal-700 focus:outline-none focus:ring-1 focus:ring-violet-600"
                     />
                   </div>
                 </div>
@@ -586,7 +586,7 @@ export const OnboardingPage: React.FC = () => {
                     onChange={(e) => setSupplierAddress(e.target.value)}
                     placeholder="Enter complete manufacturing/distribution warehouse address..."
                     rows={3}
-                    className="mt-2 block w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 text-sm focus:border-violet-600 focus:outline-none focus:ring-1 focus:ring-violet-600"
+                    className="mt-2 block w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-sm focus:border-teal-700 focus:outline-none focus:ring-1 focus:ring-violet-600"
                   />
                 </div>
 
@@ -600,7 +600,7 @@ export const OnboardingPage: React.FC = () => {
                       value={supplierHours}
                       onChange={(e) => setSupplierHours(e.target.value)}
                       placeholder="e.g. 9 AM - 6 PM, Monday - Saturday"
-                      className="mt-2 block w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 text-sm focus:border-violet-600 focus:outline-none focus:ring-1 focus:ring-violet-600"
+                      className="mt-2 block w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-sm focus:border-teal-700 focus:outline-none focus:ring-1 focus:ring-violet-600"
                     />
                   </div>
                   <div>
@@ -611,7 +611,7 @@ export const OnboardingPage: React.FC = () => {
                       type="number"
                       value={supplierMOQ}
                       onChange={(e) => setSupplierMOQ(parseInt(e.target.value))}
-                      className="mt-2 block w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 text-sm focus:border-violet-600 focus:outline-none focus:ring-1 focus:ring-violet-600"
+                      className="mt-2 block w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-sm focus:border-teal-700 focus:outline-none focus:ring-1 focus:ring-violet-600"
                     />
                   </div>
                 </div>
@@ -628,8 +628,8 @@ export const OnboardingPage: React.FC = () => {
                         onClick={() => handleFabricCheckbox(fab)}
                         className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
                           supplierFabrics.includes(fab)
-                            ? "bg-violet-600 border-violet-600 text-white"
-                            : "bg-slate-950 border-slate-800 text-slate-400 hover:text-white"
+                            ? "bg-teal-700 border-teal-700 text-white"
+                            : "bg-slate-50 border-slate-200 text-slate-400 hover:text-white"
                         }`}
                       >
                         {fab}
@@ -647,7 +647,7 @@ export const OnboardingPage: React.FC = () => {
                     onChange={(e) => setSupplierDesc(e.target.value)}
                     placeholder="Summarize your textile specialities, certifications, weaving capacity..."
                     rows={3}
-                    className="mt-2 block w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 text-sm focus:border-violet-600 focus:outline-none focus:ring-1 focus:ring-violet-600"
+                    className="mt-2 block w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-sm focus:border-teal-700 focus:outline-none focus:ring-1 focus:ring-violet-600"
                   />
                 </div>
               </>
@@ -656,7 +656,7 @@ export const OnboardingPage: React.FC = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full flex items-center justify-center gap-2 py-4 bg-gradient-to-tr from-violet-600 to-indigo-600 hover:opacity-95 text-sm font-bold rounded-xl shadow-xl shadow-indigo-600/10 hover:shadow-indigo-600/20 disabled:bg-slate-800 disabled:text-slate-600 transition-all cursor-pointer"
+              className="w-full flex items-center justify-center gap-2 py-4 bg-teal-700 hover:bg-teal-800 hover:opacity-95 text-sm font-bold rounded-xl shadow-xl shadow-indigo-600/10 hover:shadow-indigo-600/20 disabled:bg-slate-800 disabled:text-slate-600 transition-all cursor-pointer"
             >
               {loading ? "Saving Profile..." : "Submit Profile & Onboard"}
               <ArrowRight className="h-4.5 w-4.5" />

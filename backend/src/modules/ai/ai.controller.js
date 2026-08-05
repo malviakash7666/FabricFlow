@@ -17,6 +17,7 @@ export const chatWithAI = async (req, res) => {
     const lowerMessage = message.toLowerCase();
     let reply = "";
     let recommendedProducts = [];
+    let filters = null;
 
     // Helper: fetch some products for recommendations
     const getRecommendations = async (whereClause = {}, limit = 5) => {
@@ -95,7 +96,7 @@ Which of these would you like to add to your order? I can assist you with that.`
       }
 
       // Parse Colors
-      const colors = ["white", "black", "blue", "red", "green", "yellow", "grey", "indigo", "pink", "beige"];
+      const colors = ["white", "black", "blue", "red", "green", "yellow", "grey", "indigo", "pink", "beige", "navy", "charcoal"];
       let detectedColor = null;
       for (const col of colors) {
         if (lowerMessage.includes(col)) {
@@ -104,13 +105,39 @@ Which of these would you like to add to your order? I can assist you with that.`
         }
       }
 
+      // Extract search keywords (strip categories, colors, numbers, and common query phrases)
+      let cleanedMsg = lowerMessage
+        .replace(/(?:search|find|show me|looking for|recommend|suggest|fabric|fabrics|material|materials|cotton|silk|denim|linen|polyester|wool|rupees|inr|rs|₹|moq|minimum|order|under|below|less than|cheaper than|budget of|above|over|more than|max|maximum|limit)/gi, "")
+        .replace(/\d+/g, "")
+        .replace(/(?:white|black|blue|red|green|yellow|grey|indigo|pink|beige|navy|charcoal)/gi, "")
+        .replace(/\s+/g, " ")
+        .trim();
+
+      // Only set search if there are actual words left
+      let searchKeyword = cleanedMsg.length > 2 ? cleanedMsg : null;
+
       // Query database
       const whereClause = { isAvailable: true, ...queryParams };
       if (detectedColor) {
-        whereClause.colors = { [Op.contains]: [detectedColor] };
+        whereClause.colors = { [Op.contains]: JSON.stringify([detectedColor]) };
+      }
+      if (searchKeyword) {
+        whereClause[Op.or] = [
+          { name: { [Op.iLike]: `%${searchKeyword}%` } },
+          { description: { [Op.iLike]: `%${searchKeyword}%` } },
+        ];
       }
 
       recommendedProducts = await getRecommendations(whereClause, 5);
+
+      // Structure filters for redirection
+      filters = {
+        category: queryParams.category || "",
+        maxPrice: priceLimit || "",
+        maxMoq: moqLimit || "",
+        color: detectedColor || "",
+        search: searchKeyword || "",
+      };
 
       if (recommendedProducts.length > 0) {
         let pListText = recommendedProducts.map((p, idx) => `${idx + 1}. **${p.name}** (${p.category}) - ₹${p.price}/m (MOQ: ${p.moq}m)`).join("\n");
@@ -176,6 +203,7 @@ Would you like to search for something else?`;
       success: true,
       reply,
       products: recommendedProducts,
+      filters,
     });
   } catch (error) {
     console.error("AI Chat Error:", error);

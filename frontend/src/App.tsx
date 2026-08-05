@@ -6,20 +6,20 @@ import { useAuth } from "./hooks/useAuth.ts";
 import { LandingPage } from "./pages/LandingPage.tsx";
 import { AuthPage } from "./pages/AuthPage.tsx";
 import { OnboardingPage } from "./pages/OnboardingPage.tsx";
-import { BuyerHome } from "./pages/BuyerHome.tsx";
+import { Marketplace } from "./pages/Marketplace.tsx";
 import { BuyerDashboard } from "./pages/BuyerDashboard.tsx";
 import { SupplierDashboard } from "./pages/SupplierDashboard.tsx";
 
 // Loading component
 const FullScreenLoader: React.FC = () => (
-  <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-white">
-    <div className="h-10 w-10 rounded-xl bg-gradient-to-tr from-violet-600 to-indigo-600 flex items-center justify-center font-bold text-lg animate-bounce mb-4">
+  <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center text-slate-800">
+    <div className="h-12 w-12 rounded-2xl bg-teal-700 flex items-center justify-center font-bold text-white text-xl shadow-lg shadow-teal-700/20 animate-bounce mb-4">
       FF
     </div>
     <div className="flex space-x-1.5 items-center">
-      <div className="h-2 w-2 bg-violet-500 rounded-full animate-pulse [animation-delay:-0.3s]"></div>
-      <div className="h-2 w-2 bg-violet-500 rounded-full animate-pulse [animation-delay:-0.15s]"></div>
-      <div className="h-2 w-2 bg-violet-500 rounded-full animate-pulse"></div>
+      <div className="h-2.5 w-2.5 bg-teal-600 rounded-full animate-pulse [animation-delay:-0.3s]"></div>
+      <div className="h-2.5 w-2.5 bg-teal-600 rounded-full animate-pulse [animation-delay:-0.15s]"></div>
+      <div className="h-2.5 w-2.5 bg-teal-600 rounded-full animate-pulse"></div>
     </div>
   </div>
 );
@@ -44,7 +44,7 @@ const ProtectedRoute: React.FC<{ children: React.ReactElement; allowedRole?: "bu
   }
 
   if (allowedRole && user?.role !== allowedRole) {
-    return <Navigate to={user?.role === "buyer" ? "/buyer/home" : "/supplier/dashboard"} replace />;
+    return <Navigate to={user?.role === "buyer" ? "/marketplace" : "/supplier/dashboard"} replace />;
   }
 
   return children;
@@ -74,6 +74,7 @@ const App: React.FC = () => {
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<AuthPage />} />
         <Route path="/register" element={<AuthPage />} />
+        <Route path="/marketplace" element={<Marketplace />} />
 
         {/* Onboarding Wizard */}
         <Route
@@ -86,14 +87,7 @@ const App: React.FC = () => {
         />
 
         {/* Buyer Experience */}
-        <Route
-          path="/buyer/home"
-          element={
-            <ProtectedRoute allowedRole="buyer">
-              <BuyerHome />
-            </ProtectedRoute>
-          }
-        />
+        <Route path="/buyer/home" element={<Navigate to="/marketplace" replace />} />
         <Route
           path="/buyer/dashboard"
           element={

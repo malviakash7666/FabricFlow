@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth.ts";
+import { useToast } from "../components/Toast.tsx";
 import { Eye, EyeOff, User, Lock, Mail, Users, ArrowLeft } from "lucide-react";
 
 export const AuthPage: React.FC = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { loginUser, registerUser, isAuthenticated, isOnboarded, user, loading, error } = useAuth();
+  const { showToast } = useToast();
 
   const isRegisterParam = window.location.pathname.includes("register");
   const [isRegister, setIsRegister] = useState(isRegisterParam);
@@ -42,30 +44,30 @@ export const AuthPage: React.FC = () => {
 
     if (!email || !password || (isRegister && !name)) {
       setLocalError("Please fill out all required fields.");
+      showToast("Please fill out all required fields.", "error");
       return;
     }
 
     try {
       if (isRegister) {
         await registerUser({ name, email, password, role });
+        showToast("Account created successfully!", "success");
       } else {
         await loginUser({ email, password });
+        showToast("Logged in successfully!", "success");
       }
     } catch (err: any) {
       setLocalError(err.message || "An authentication error occurred.");
+      showToast(err.message || "An authentication error occurred.", "error");
     }
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white flex flex-col justify-center relative py-12 px-6 overflow-hidden">
-      {/* Background Glow */}
-      <div className="absolute top-1/4 left-1/3 h-[400px] w-[400px] rounded-full bg-violet-600/10 blur-[100px] pointer-events-none"></div>
-      <div className="absolute bottom-1/4 right-1/3 h-[400px] w-[400px] rounded-full bg-indigo-600/10 blur-[100px] pointer-events-none"></div>
-
+    <div className="min-h-screen bg-slate-50 text-slate-800 flex flex-col justify-center relative py-12 px-6 overflow-hidden">
       <div className="absolute top-8 left-8">
         <Link
           to="/"
-          className="flex items-center gap-2 text-xs font-semibold text-slate-400 hover:text-white transition-colors"
+          className="flex items-center gap-2 text-xs font-semibold text-slate-500 hover:text-slate-900 transition-colors"
         >
           <ArrowLeft className="h-4 w-4" />
           Back to Home
@@ -73,10 +75,10 @@ export const AuthPage: React.FC = () => {
       </div>
 
       <div className="sm:mx-auto sm:w-full sm:max-w-md relative z-10 text-center mb-8">
-        <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-tr from-violet-600 to-indigo-600 text-xl font-bold shadow-lg shadow-violet-600/20 mb-4">
+        <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-teal-700 text-xl font-bold shadow-lg shadow-teal-700/20 text-white mb-4">
           FF
         </div>
-        <h2 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">
+        <h2 className="text-3xl font-extrabold tracking-tight text-slate-900">
           {isRegister ? "Create Wholesale Account" : "Access Marketplace"}
         </h2>
         <p className="text-slate-500 text-xs mt-2 font-medium">
@@ -85,22 +87,22 @@ export const AuthPage: React.FC = () => {
       </div>
 
       <div className="sm:mx-auto sm:w-full sm:max-w-md relative z-10">
-        <div className="bg-slate-900 border border-slate-800 py-8 px-6 shadow-2xl rounded-2xl sm:px-10">
+        <div className="bg-white border border-slate-200 py-8 px-6 shadow-xl rounded-2xl sm:px-10">
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Role Selection Tabs (Only on Register) */}
             {isRegister && (
               <div>
-                <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
+                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
                   Account Type
                 </label>
-                <div className="grid grid-cols-2 gap-2 bg-slate-950 p-1 rounded-xl border border-slate-800">
+                <div className="grid grid-cols-2 gap-2 bg-slate-100 p-1 rounded-xl border border-slate-200">
                   <button
                     type="button"
                     onClick={() => setRole("buyer")}
                     className={`flex items-center justify-center gap-2 py-2.5 rounded-lg text-xs font-bold transition-all ${
                       role === "buyer"
-                        ? "bg-violet-600 text-white shadow-md shadow-violet-600/10"
-                        : "text-slate-400 hover:text-white"
+                        ? "bg-teal-700 text-white shadow-md shadow-teal-700/10"
+                        : "text-slate-500 hover:text-slate-800"
                     }`}
                   >
                     <Users className="h-3.5 w-3.5" />
@@ -111,8 +113,8 @@ export const AuthPage: React.FC = () => {
                     onClick={() => setRole("supplier")}
                     className={`flex items-center justify-center gap-2 py-2.5 rounded-lg text-xs font-bold transition-all ${
                       role === "supplier"
-                        ? "bg-violet-600 text-white shadow-md shadow-violet-600/10"
-                        : "text-slate-400 hover:text-white"
+                        ? "bg-teal-700 text-white shadow-md shadow-teal-700/10"
+                        : "text-slate-500 hover:text-slate-800"
                     }`}
                   >
                     <Users className="h-3.5 w-3.5" />
@@ -122,21 +124,16 @@ export const AuthPage: React.FC = () => {
               </div>
             )}
 
-            {/* Error Message */}
-            {(localError || error) && (
-              <div className="rounded-xl bg-red-500/10 border border-red-500/20 p-3.5 text-xs text-red-400 font-semibold leading-relaxed">
-                {localError || error}
-              </div>
-            )}
+
 
             {/* Full Name */}
             {isRegister && (
               <div>
-                <label htmlFor="name" className="block text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                <label htmlFor="name" className="block text-xs font-semibold text-slate-500 uppercase tracking-wider">
                   Full Name
                 </label>
                 <div className="mt-2.5 relative">
-                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                     <User className="h-4.5 w-4.5" />
                   </div>
                   <input
@@ -146,7 +143,7 @@ export const AuthPage: React.FC = () => {
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder="Enter your name"
-                    className="block w-full pl-10 pr-4 py-3 rounded-xl bg-slate-950 border border-slate-800 text-sm text-white placeholder-slate-500 focus:border-violet-600 focus:outline-none focus:ring-1 focus:ring-violet-600"
+                    className="block w-full pl-10 pr-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-sm text-slate-800 placeholder-slate-400 focus:border-teal-600 focus:outline-none focus:ring-1 focus:ring-teal-600"
                   />
                 </div>
               </div>
@@ -154,11 +151,11 @@ export const AuthPage: React.FC = () => {
 
             {/* Email Address */}
             <div>
-              <label htmlFor="email" className="block text-xs font-semibold text-slate-400 uppercase tracking-wider">
+              <label htmlFor="email" className="block text-xs font-semibold text-slate-500 uppercase tracking-wider">
                 Email Address
               </label>
               <div className="mt-2.5 relative">
-                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
+                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                   <Mail className="h-4.5 w-4.5" />
                 </div>
                 <input
@@ -168,7 +165,7 @@ export const AuthPage: React.FC = () => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="name@company.com"
-                  className="block w-full pl-10 pr-4 py-3 rounded-xl bg-slate-950 border border-slate-800 text-sm text-white placeholder-slate-500 focus:border-violet-600 focus:outline-none focus:ring-1 focus:ring-violet-600"
+                  className="block w-full pl-10 pr-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-sm text-slate-800 placeholder-slate-400 focus:border-teal-600 focus:outline-none focus:ring-1 focus:ring-teal-600"
                 />
               </div>
             </div>
@@ -176,12 +173,12 @@ export const AuthPage: React.FC = () => {
             {/* Password */}
             <div>
               <div className="flex justify-between items-center">
-                <label htmlFor="password" className="block text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                <label htmlFor="password" className="block text-xs font-semibold text-slate-500 uppercase tracking-wider">
                   Password
                 </label>
               </div>
               <div className="mt-2.5 relative">
-                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
+                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                   <Lock className="h-4.5 w-4.5" />
                 </div>
                 <input
@@ -191,12 +188,12 @@ export const AuthPage: React.FC = () => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="block w-full pl-10 pr-10 py-3 rounded-xl bg-slate-950 border border-slate-800 text-sm text-white placeholder-slate-500 focus:border-violet-600 focus:outline-none focus:ring-1 focus:ring-violet-600"
+                  className="block w-full pl-10 pr-10 py-3 rounded-xl bg-slate-50 border border-slate-200 text-sm text-slate-800 placeholder-slate-400 focus:border-teal-600 focus:outline-none focus:ring-1 focus:ring-teal-600"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-500 hover:text-white"
+                  className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600"
                 >
                   {showPassword ? <EyeOff className="h-4.5 w-4.5" /> : <Eye className="h-4.5 w-4.5" />}
                 </button>
@@ -208,7 +205,7 @@ export const AuthPage: React.FC = () => {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-lg shadow-violet-600/10 hover:shadow-violet-600/20 font-bold bg-violet-600 hover:bg-violet-500 disabled:bg-slate-800 disabled:text-slate-600 text-sm text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-violet-500 transition-all cursor-pointer"
+                className="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-lg shadow-teal-700/10 hover:shadow-teal-700/20 font-bold bg-teal-700 hover:bg-teal-800 disabled:bg-slate-100 disabled:text-slate-400 text-sm text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 transition-all cursor-pointer"
               >
                 {loading ? "Authenticating..." : isRegister ? "Create Account" : "Access Platform"}
               </button>
@@ -216,7 +213,7 @@ export const AuthPage: React.FC = () => {
           </form>
 
           {/* Toggle Link */}
-          <div className="mt-6 text-center text-xs text-slate-400">
+          <div className="mt-6 text-center text-xs text-slate-500">
             {isRegister ? "Already have an account?" : "New to FabricFlow?"}{" "}
             <button
               onClick={() => {
@@ -224,7 +221,7 @@ export const AuthPage: React.FC = () => {
                 setIsRegister(!isRegister);
                 navigate(isRegister ? "/login" : "/register");
               }}
-              className="text-violet-400 hover:text-violet-300 font-bold ml-1 hover:underline cursor-pointer"
+              className="text-teal-700 hover:text-teal-800 font-bold ml-1 hover:underline cursor-pointer bg-transparent border-none"
             >
               {isRegister ? "Sign In" : "Register Free"}
             </button>

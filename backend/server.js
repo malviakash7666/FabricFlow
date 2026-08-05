@@ -12,6 +12,7 @@ import cartRoutes from "./src/modules/cart/cart.routes.js";
 import orderRoutes from "./src/modules/order/order.routes.js";
 import aiRoutes from "./src/modules/ai/ai.routes.js";
 import rfqRoutes from "./src/modules/rfq/rfq.routes.js";
+import uploadRoutes from "./src/modules/upload/upload.routes.js";
 
 dotenv.config();
 
@@ -79,6 +80,7 @@ app.use("/api/cart", cartRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/ai", aiRoutes);
 app.use("/api/rfq", rfqRoutes);
+app.use("/api/upload", uploadRoutes);
 
 // =====================
 // Server Start

@@ -1,5 +1,16 @@
 import db from "./models/index.js";
 import bcrypt from "bcrypt";
+import { v2 as cloudinary } from "cloudinary";
+import dotenv from "dotenv";
+
+dotenv.config();
+
+// Configure Cloudinary
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 const seedDatabase = async () => {
   try {
@@ -145,7 +156,7 @@ const seedDatabase = async () => {
         },
         price: 195.0,
         stock: 3000,
-        imageUrls: ["https://images.unsplash.com/photo-1506744824163-985d376605aa?w=600"],
+        imageUrls: ["https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=600"],
         moq: 200,
         isAvailable: true,
       },
@@ -162,11 +173,25 @@ const seedDatabase = async () => {
         },
         price: 550.0,
         stock: 1200,
-        imageUrls: ["https://images.unsplash.com/photo-1464226184884-fa280b87c3a9?w=600"],
+        imageUrls: ["https://images.unsplash.com/photo-1584992236310-6edddc08acff?w=600"],
         moq: 150,
         isAvailable: true,
       },
     ];
+
+    console.log("⏳ Uploading seed product images to Cloudinary...");
+    for (const product of productsData) {
+      try {
+        const uploadResult = await cloudinary.uploader.upload(product.imageUrls[0], {
+          folder: "fabricflow_seeds",
+          resource_type: "image",
+        });
+        console.log(`✅ Uploaded image for ${product.name} -> ${uploadResult.secure_url}`);
+        product.imageUrls = [uploadResult.secure_url];
+      } catch (uploadError) {
+        console.error(`❌ Failed to upload image for ${product.name}, keeping fallback.`, uploadError.message);
+      }
+    }
 
     await db.Product.bulkCreate(productsData);
     console.log("✅ Products created successfully.");

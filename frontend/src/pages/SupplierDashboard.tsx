@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../hooks/useAuth.ts";
 import { productService } from "../services/product.service.ts";
+import api from "../services/api.ts";
+import { useToast } from "../components/Toast.tsx";
 import { orderService } from "../services/order.service.ts";
 import { rfqService } from "../services/rfq.service.ts";
 import type { Rfq, RfqQuote } from "../services/rfq.service.ts";
@@ -75,6 +77,7 @@ interface Order {
 
 export const SupplierDashboard: React.FC = () => {
   const { user, profile, logoutUser } = useAuth();
+  const { showToast } = useToast();
 
   const [products, setProducts] = useState<Product[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
@@ -108,6 +111,31 @@ export const SupplierDashboard: React.FC = () => {
   const [prodStock, setProdStock] = useState(2000);
   const [prodMOQ, setProdMOQ] = useState(200);
   const [prodImageUrl, setProdImageUrl] = useState("");
+  const [uploadingImage, setUploadingImage] = useState(false);
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append("image", file);
+
+    setUploadingImage(true);
+    try {
+      const res = await api.post("/upload/image", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+      if (res.data && res.data.url) {
+        setProdImageUrl(res.data.url);
+      }
+    } catch (err: any) {
+      showToast(err.response?.data?.message || "Failed to upload image. Please verify your Cloudinary configurations.", "error");
+    } finally {
+      setUploadingImage(false);
+    }
+  };
 
   // AI Autocomplete states
   const [aiPrompt, setAiPrompt] = useState("");
@@ -203,7 +231,7 @@ export const SupplierDashboard: React.FC = () => {
   // AI Fill specs generator
   const handleAiFill = async () => {
     if (!aiPrompt.trim()) {
-      alert("Please describe the fabric first.");
+      showToast("Please describe the fabric first.", "error");
       return;
     }
     setAiGenerating(true);
@@ -222,7 +250,7 @@ export const SupplierDashboard: React.FC = () => {
         setProdMOQ(d.moq || 200);
       }
     } catch (err: any) {
-      alert(err.response?.data?.message || "Failed to generate specs from prompt.");
+      showToast(err.response?.data?.message || "Failed to generate specs from prompt.", "error");
     } finally {
       setAiGenerating(false);
     }
@@ -232,7 +260,7 @@ export const SupplierDashboard: React.FC = () => {
   const handleProductSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!prodName || !prodPrice || !prodStock) {
-      alert("Name, Price, and Stock are required fields.");
+      showToast("Name, Price, and Stock are required fields.", "error");
       return;
     }
 
@@ -261,7 +289,7 @@ export const SupplierDashboard: React.FC = () => {
       setIsProductModalOpen(false);
       loadDashboardData();
     } catch (err: any) {
-      alert(err.message || "Failed to save product listing.");
+      showToast(err.message || "Failed to save product listing.", "error");
     }
   };
 
@@ -278,10 +306,10 @@ export const SupplierDashboard: React.FC = () => {
       });
       setIsQuoteModalOpen(false);
       setBidNotes("");
-      alert("Bid placed successfully!");
+      showToast("Bid placed successfully!", "success");
       loadDashboardData();
     } catch (err: any) {
-      alert(err.response?.data?.message || "Failed to submit quote.");
+      showToast(err.response?.data?.message || "Failed to submit quote.", "error");
     } finally {
       setSubmittingBid(false);
     }
@@ -302,7 +330,7 @@ export const SupplierDashboard: React.FC = () => {
       await productService.updateProduct(id, { stock: newStock });
       loadDashboardData();
     } catch (err) {
-      alert("Failed to update stock");
+      showToast("Failed to update stock", "error");
     }
   };
 
@@ -312,7 +340,7 @@ export const SupplierDashboard: React.FC = () => {
       await productService.updateProduct(prod.id, { isAvailable: !prod.isAvailable });
       loadDashboardData();
     } catch (err) {
-      alert("Failed to update availability");
+      showToast("Failed to update availability", "error");
     }
   };
 
@@ -323,7 +351,7 @@ export const SupplierDashboard: React.FC = () => {
       await productService.deleteProduct(id);
       loadDashboardData();
     } catch (err) {
-      alert("Failed to delete product");
+      showToast("Failed to delete product", "error");
     }
   };
 
@@ -338,7 +366,7 @@ export const SupplierDashboard: React.FC = () => {
         loadDashboardData();
       }
     } catch (err) {
-      alert("Failed to update order status");
+      showToast("Failed to update order status", "error");
     }
   };
 
@@ -354,16 +382,16 @@ export const SupplierDashboard: React.FC = () => {
       setTrackingModalOrder(null);
       loadDashboardData();
     } catch (err) {
-      alert("Failed to dispatch order.");
+      showToast("Failed to dispatch order.", "error");
     }
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white font-sans flex flex-col">
+    <div className="min-h-screen bg-slate-50 text-slate-800 font-sans flex flex-col">
       {/* Header bar */}
-      <header className="sticky top-0 z-30 bg-slate-900 border-b border-slate-800 px-6 py-4 flex items-center justify-between">
+      <header className="sticky top-0 z-30 bg-white border-b border-slate-200 text-slate-800 shadow-xs px-6 py-4 flex items-center justify-between">
         <div className="flex items-center space-x-2">
-          <div className="h-8 w-8 rounded-lg bg-violet-600 flex items-center justify-center font-bold text-sm shadow">
+          <div className="h-8 w-8 rounded-lg bg-teal-700 flex items-center justify-center font-bold text-sm shadow">
             FF
           </div>
           <span className="font-extrabold text-lg tracking-tight bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">
@@ -372,11 +400,11 @@ export const SupplierDashboard: React.FC = () => {
         </div>
 
         <div className="flex items-center space-x-4">
-          <div className="flex items-center space-x-3 bg-slate-950/40 border border-slate-850 px-3 py-1.5 rounded-xl">
-            <Building className="h-4 w-4 text-violet-400" />
+          <div className="flex items-center space-x-3 bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-xl">
+            <Building className="h-4 w-4 text-teal-700" />
             <div className="text-left">
               <p className="text-xs font-bold">{profile?.businessName}</p>
-              <p className="text-[10px] text-slate-500">Mill Supplier Dashboard</p>
+              <p className="text-[10px] text-slate-400">Mill Supplier Dashboard</p>
             </div>
           </div>
           <button
@@ -394,19 +422,19 @@ export const SupplierDashboard: React.FC = () => {
         
         {/* Stats Grid */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex items-center justify-between">
+          <div className="bg-white border border-slate-200 shadow-xs rounded-2xl p-5 flex items-center justify-between">
             <div>
-              <p className="text-xs text-slate-500 font-semibold uppercase">Total Products</p>
+              <p className="text-xs text-slate-400 font-semibold uppercase">Total Products</p>
               <h3 className="text-2xl font-bold mt-1.5">{stats.totalProducts}</h3>
             </div>
-            <div className="h-10 w-10 rounded-xl bg-violet-600/10 border border-violet-500/20 flex items-center justify-center text-violet-400">
+            <div className="h-10 w-10 rounded-xl bg-teal-700/10 border border-teal-200/50 flex items-center justify-center text-teal-700">
               <Layers className="h-5 w-5" />
             </div>
           </div>
 
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex items-center justify-between">
+          <div className="bg-white border border-slate-200 shadow-xs rounded-2xl p-5 flex items-center justify-between">
             <div>
-              <p className="text-xs text-slate-500 font-semibold uppercase">Active Listings</p>
+              <p className="text-xs text-slate-400 font-semibold uppercase">Active Listings</p>
               <h3 className="text-2xl font-bold mt-1.5 text-emerald-400">{stats.activeProducts}</h3>
             </div>
             <div className="h-10 w-10 rounded-xl bg-emerald-600/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
@@ -414,9 +442,9 @@ export const SupplierDashboard: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex items-center justify-between">
+          <div className="bg-white border border-slate-200 shadow-xs rounded-2xl p-5 flex items-center justify-between">
             <div>
-              <p className="text-xs text-slate-500 font-semibold uppercase">Pending Orders</p>
+              <p className="text-xs text-slate-400 font-semibold uppercase">Pending Orders</p>
               <h3 className="text-2xl font-bold mt-1.5 text-amber-400">{stats.pendingOrders}</h3>
             </div>
             <div className="h-10 w-10 rounded-xl bg-amber-600/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
@@ -424,9 +452,9 @@ export const SupplierDashboard: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex items-center justify-between">
+          <div className="bg-white border border-slate-200 shadow-xs rounded-2xl p-5 flex items-center justify-between">
             <div>
-              <p className="text-xs text-slate-500 font-semibold uppercase">Low Stock Alerts</p>
+              <p className="text-xs text-slate-400 font-semibold uppercase">Low Stock Alerts</p>
               <h3 className={`text-2xl font-bold mt-1.5 ${stats.lowStockAlerts > 0 ? "text-red-400" : "text-slate-400"}`}>
                 {stats.lowStockAlerts}
               </h3>
@@ -434,7 +462,7 @@ export const SupplierDashboard: React.FC = () => {
             <div className={`h-10 w-10 rounded-xl flex items-center justify-center border ${
               stats.lowStockAlerts > 0
                 ? "bg-red-600/10 border-red-500/20 text-red-400 animate-pulse"
-                : "bg-slate-800/10 border-slate-800 text-slate-500"
+                : "bg-slate-800/10 border-slate-200 text-slate-400"
             }`}>
               <AlertTriangle className="h-5 w-5" />
             </div>
@@ -442,12 +470,12 @@ export const SupplierDashboard: React.FC = () => {
         </div>
 
         {/* Tab Controls */}
-        <div className="flex border-b border-slate-800">
+        <div className="flex border-b border-slate-200">
           <button
             onClick={() => setActiveTab("inventory")}
             className={`px-6 py-3 font-bold text-sm border-b-2 transition-all cursor-pointer ${
               activeTab === "inventory"
-                ? "border-violet-600 text-violet-400"
+                ? "border-teal-700 text-teal-700"
                 : "border-transparent text-slate-400 hover:text-white"
             }`}
           >
@@ -457,7 +485,7 @@ export const SupplierDashboard: React.FC = () => {
             onClick={() => setActiveTab("orders")}
             className={`px-6 py-3 font-bold text-sm border-b-2 transition-all cursor-pointer ${
               activeTab === "orders"
-                ? "border-violet-600 text-violet-400"
+                ? "border-teal-700 text-teal-700"
                 : "border-transparent text-slate-400 hover:text-white"
             }`}
           >
@@ -467,7 +495,7 @@ export const SupplierDashboard: React.FC = () => {
             onClick={() => setActiveTab("rfqs")}
             className={`px-6 py-3 font-bold text-sm border-b-2 transition-all cursor-pointer ${
               activeTab === "rfqs"
-                ? "border-violet-600 text-violet-400"
+                ? "border-teal-700 text-teal-700"
                 : "border-transparent text-slate-400 hover:text-white"
             }`}
           >
@@ -479,14 +507,14 @@ export const SupplierDashboard: React.FC = () => {
         {activeTab === "inventory" ? (
           // Inventory Panel
           <div className="space-y-6">
-            <div className="flex justify-between items-center bg-slate-900 border border-slate-800 rounded-2xl px-6 py-4">
+            <div className="flex justify-between items-center bg-white border border-slate-200 shadow-xs rounded-2xl px-6 py-4">
               <div>
                 <h2 className="text-lg font-bold">Factory Product Catalog</h2>
                 <p className="text-xs text-slate-400 mt-0.5">Manage details, edit stock yards, and list new products.</p>
               </div>
               <button
                 onClick={handleOpenAddProduct}
-                className="flex items-center gap-1.5 rounded-xl bg-violet-600 hover:bg-violet-500 px-4 py-2.5 text-xs font-bold cursor-pointer"
+                className="flex items-center gap-1.5 rounded-xl bg-teal-700 hover:bg-teal-850 px-4 py-2.5 text-xs font-bold cursor-pointer"
               >
                 <Plus className="h-4 w-4" />
                 Add Product
@@ -496,11 +524,11 @@ export const SupplierDashboard: React.FC = () => {
             {loading ? (
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-pulse">
                 {[1, 2].map((i) => (
-                  <div key={i} className="h-80 rounded-2xl bg-slate-900 border border-slate-850"></div>
+                  <div key={i} className="h-80 rounded-2xl bg-white border border-slate-200"></div>
                 ))}
               </div>
             ) : products.length === 0 ? (
-              <div className="bg-slate-900 border border-slate-800 rounded-2xl p-12 text-center text-slate-500 text-xs">
+              <div className="bg-white border border-slate-200 shadow-xs rounded-2xl p-12 text-center text-slate-400 text-xs">
                 Your mill catalog is empty. Click "Add Product" above to list your first fabric!
               </div>
             ) : (
@@ -508,7 +536,7 @@ export const SupplierDashboard: React.FC = () => {
                 {products.map((prod) => (
                   <div
                      key={prod.id}
-                     className="bg-slate-900/50 border border-slate-900 p-4 rounded-2xl flex flex-col justify-between hover:bg-slate-900 hover:border-slate-800 transition-all duration-300"
+                     className="bg-white/50 border border-slate-250 p-4 rounded-2xl flex flex-col justify-between hover:bg-white hover:border-slate-200 transition-all duration-300"
                   >
                     <div>
                       <img
@@ -517,7 +545,7 @@ export const SupplierDashboard: React.FC = () => {
                         className="h-40 w-full rounded-xl object-cover mb-4"
                       />
                       <div className="flex justify-between items-center mb-2">
-                        <span className="text-[9px] bg-slate-950 border border-slate-855 text-slate-400 px-2 py-0.5 rounded-md font-bold uppercase">
+                        <span className="text-[9px] bg-slate-50 border border-slate-855 text-slate-400 px-2 py-0.5 rounded-md font-bold uppercase">
                           {prod.category}
                         </span>
                         <span
@@ -531,19 +559,19 @@ export const SupplierDashboard: React.FC = () => {
                         </span>
                       </div>
                       <h4 className="font-bold text-sm truncate" title={prod.name}>{prod.name}</h4>
-                      <p className="text-[10px] text-slate-500 font-bold mt-1">₹{prod.price}/meter • MOQ: {prod.moq}m</p>
+                      <p className="text-[10px] text-slate-400 font-bold mt-1">₹{prod.price}/meter • MOQ: {prod.moq}m</p>
 
                       {/* Stock Quick Editor */}
                       <div className="mt-4 flex items-center justify-between gap-2 border-t border-slate-950/40 pt-3">
                         <span className="text-[10px] text-slate-400">Stock meters:</span>
-                        <div className="flex items-center bg-slate-950 border border-slate-800 rounded-lg px-1">
+                        <div className="flex items-center bg-slate-50 border border-slate-200 rounded-lg px-1">
                           <button
                             onClick={() => handleQuickStockUpdate(prod.id, Math.max(0, prod.stock - 100))}
                             className="p-1.5 text-slate-400 hover:text-white"
                           >
                             <Minus className="h-3 w-3" />
                           </button>
-                          <span className="w-16 text-center text-xs font-mono font-bold text-slate-200">
+                          <span className="w-16 text-center text-xs font-mono font-bold text-slate-800">
                             {prod.stock}m
                           </span>
                           <button
@@ -561,7 +589,7 @@ export const SupplierDashboard: React.FC = () => {
                         onClick={() => handleToggleAvailability(prod)}
                         className={`flex-1 py-2 text-[10px] font-bold rounded-lg border transition-colors cursor-pointer ${
                           prod.isAvailable
-                            ? "bg-slate-950 border-slate-800 text-slate-400 hover:bg-slate-900"
+                            ? "bg-slate-50 border-slate-200 text-slate-400 hover:bg-white"
                             : "bg-emerald-600/10 border-emerald-500/20 text-emerald-400 hover:bg-emerald-600/20"
                         }`}
                       >
@@ -569,14 +597,14 @@ export const SupplierDashboard: React.FC = () => {
                       </button>
                       <button
                         onClick={() => handleOpenEditProduct(prod)}
-                        className="p-2 rounded-lg bg-slate-950 border border-slate-800 hover:bg-slate-900 text-slate-400 hover:text-white cursor-pointer"
+                        className="p-2 rounded-lg bg-slate-50 border border-slate-200 hover:bg-white text-slate-400 hover:text-white cursor-pointer"
                         title="Edit specifications"
                       >
                         <Edit2 className="h-3.5 w-3.5" />
                       </button>
                       <button
                         onClick={() => handleDeleteProduct(prod.id)}
-                        className="p-2 rounded-lg bg-slate-950 border border-slate-800 hover:bg-red-500/10 text-slate-500 hover:text-red-400 cursor-pointer"
+                        className="p-2 rounded-lg bg-slate-50 border border-slate-200 hover:bg-red-500/10 text-slate-400 hover:text-red-400 cursor-pointer"
                         title="Delete listing"
                       >
                         <Trash2 className="h-3.5 w-3.5" />
@@ -590,7 +618,7 @@ export const SupplierDashboard: React.FC = () => {
         ) : activeTab === "orders" ? (
           // Orders Panel
           <div className="space-y-6">
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl px-6 py-4">
+            <div className="bg-white border border-slate-200 shadow-xs rounded-2xl px-6 py-4">
               <h2 className="text-lg font-bold">Incoming Buyer Sourcing Orders</h2>
               <p className="text-xs text-slate-400 mt-0.5">Manage customer shipments, update order timeline status, and view onboarding criteria.</p>
             </div>
@@ -598,11 +626,11 @@ export const SupplierDashboard: React.FC = () => {
             {loading ? (
               <div className="space-y-4 animate-pulse">
                 {[1, 2].map((i) => (
-                  <div key={i} className="h-32 bg-slate-900 border border-slate-850 rounded-2xl"></div>
+                  <div key={i} className="h-32 bg-white border border-slate-200 rounded-2xl"></div>
                 ))}
               </div>
             ) : orders.length === 0 ? (
-              <div className="bg-slate-900 border border-slate-800 rounded-2xl p-12 text-center text-slate-500 text-xs">
+              <div className="bg-white border border-slate-200 shadow-xs rounded-2xl p-12 text-center text-slate-400 text-xs">
                 No orders received yet from buyers.
               </div>
             ) : (
@@ -610,24 +638,24 @@ export const SupplierDashboard: React.FC = () => {
                 {orders.map((order) => (
                   <div
                     key={order.id}
-                    className="bg-slate-900 border border-slate-800 rounded-2xl p-5 hover:border-slate-700 transition-colors space-y-4"
+                    className="bg-white border border-slate-200 shadow-xs rounded-2xl p-5 hover:border-slate-700 transition-colors space-y-4"
                   >
                     <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 pb-3 border-b border-slate-950/60">
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 w-full flex-1">
                         <div>
-                          <p className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider">Ref ID</p>
-                          <h5 className="font-mono text-xs font-bold text-slate-300 mt-0.5">#{order.id.slice(0, 8)}...</h5>
+                          <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Ref ID</p>
+                          <h5 className="font-mono text-xs font-bold text-slate-700 mt-0.5">#{order.id.slice(0, 8)}...</h5>
                         </div>
                         <div>
-                          <p className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider">Buyer Brand</p>
-                          <h5 className="text-xs font-bold text-slate-300 mt-0.5 truncate">{order.buyer?.businessName}</h5>
+                          <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Buyer Brand</p>
+                          <h5 className="text-xs font-bold text-slate-700 mt-0.5 truncate">{order.buyer?.businessName}</h5>
                         </div>
                         <div>
-                          <p className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider">Order Value</p>
-                          <h5 className="text-xs font-bold text-violet-400 mt-0.5">₹{parseFloat(order.totalAmount as any).toFixed(2)}</h5>
+                          <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Order Value</p>
+                          <h5 className="text-xs font-bold text-teal-700 mt-0.5">₹{parseFloat(order.totalAmount as any).toFixed(2)}</h5>
                         </div>
                         <div>
-                          <p className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider">Status</p>
+                          <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Status</p>
                           <span
                             className={`inline-block px-2.5 py-0.5 rounded-full text-[9px] font-bold border capitalize mt-1 ${
                               order.status === "completed"
@@ -636,7 +664,7 @@ export const SupplierDashboard: React.FC = () => {
                                 ? "bg-cyan-500/10 border-cyan-500/20 text-cyan-400"
                                 : order.status === "pending"
                                 ? "bg-amber-500/10 border-amber-500/20 text-amber-400"
-                                : "bg-indigo-500/10 border-indigo-500/20 text-indigo-400"
+                                : "bg-indigo-500/10 border-indigo-500/20 text-teal-700"
                             }`}
                           >
                             {order.status.replace(/_/g, " ")}
@@ -649,7 +677,7 @@ export const SupplierDashboard: React.FC = () => {
                         {order.status === "pending" && (
                           <button
                             onClick={() => handleAdvanceOrderStatus(order, "accepted")}
-                            className="flex items-center gap-1 bg-violet-600 hover:bg-violet-500 px-3 py-2 rounded-xl text-[10px] font-bold text-white cursor-pointer shadow shadow-violet-600/10"
+                            className="flex items-center gap-1 bg-teal-700 hover:bg-teal-850 px-3 py-2 rounded-xl text-[10px] font-bold text-white cursor-pointer shadow shadow-violet-600/10"
                           >
                             <CheckCircle className="h-3.5 w-3.5" />
                             Accept Order
@@ -658,7 +686,7 @@ export const SupplierDashboard: React.FC = () => {
                         {order.status === "accepted" && (
                           <button
                             onClick={() => handleAdvanceOrderStatus(order, "preparing")}
-                            className="flex items-center gap-1 bg-indigo-600 hover:bg-indigo-500 px-3 py-2 rounded-xl text-[10px] font-bold text-white cursor-pointer shadow"
+                            className="flex items-center gap-1 bg-teal-700 hover:bg-indigo-500 px-3 py-2 rounded-xl text-[10px] font-bold text-white cursor-pointer shadow"
                           >
                             <Scissors className="h-3.5 w-3.5" />
                             Start Preparing Fabric
@@ -688,31 +716,31 @@ export const SupplierDashboard: React.FC = () => {
                     {/* Bottom grid: items vs shipping info */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs">
                       <div>
-                        <h6 className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider mb-2">Requested fabrics</h6>
+                        <h6 className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider mb-2">Requested fabrics</h6>
                         <div className="space-y-2">
                           {order.items.map((item) => (
-                            <div key={item.id} className="flex justify-between items-center bg-slate-950/45 p-2 rounded-xl border border-slate-850">
-                              <span className="font-bold text-slate-300">{item.productName}</span>
-                              <span className="font-semibold text-slate-200">{item.quantity} meters</span>
+                            <div key={item.id} className="flex justify-between items-center bg-slate-50/45 p-2 rounded-xl border border-slate-200">
+                              <span className="font-bold text-slate-700">{item.productName}</span>
+                              <span className="font-semibold text-slate-800">{item.quantity} meters</span>
                             </div>
                           ))}
                         </div>
                       </div>
 
                       <div>
-                        <h6 className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider mb-2">Recipient details</h6>
-                        <div className="bg-slate-950/45 p-3 rounded-xl border border-slate-850 space-y-1">
+                        <h6 className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider mb-2">Recipient details</h6>
+                        <div className="bg-slate-50/45 p-3 rounded-xl border border-slate-200 space-y-1">
                           <p className="text-slate-400">
-                            <span className="font-bold text-slate-300">Brand Contact:</span> {order.contactName} ({order.buyer?.businessType})
+                            <span className="font-bold text-slate-700">Brand Contact:</span> {order.contactName} ({order.buyer?.businessType})
                           </p>
                           <p className="text-slate-400">
-                            <span className="font-bold text-slate-300">Phone:</span> {order.phone}
+                            <span className="font-bold text-slate-700">Phone:</span> {order.phone}
                           </p>
                           <p className="text-slate-400">
-                            <span className="font-bold text-slate-300">Logistics Destination:</span> {order.shippingAddress}
+                            <span className="font-bold text-slate-700">Logistics Destination:</span> {order.shippingAddress}
                           </p>
                           {order.trackingNumber && (
-                            <p className="text-cyan-400 mt-2 pt-1 border-t border-slate-900 font-semibold">
+                            <p className="text-cyan-400 mt-2 pt-1 border-t border-slate-250 font-semibold">
                               Tracking Code: {order.trackingNumber}
                             </p>
                           )}
@@ -729,16 +757,16 @@ export const SupplierDashboard: React.FC = () => {
           <div className="space-y-8">
             {/* Sourcing requests list */}
             <div className="space-y-4">
-              <div className="bg-slate-900 border border-slate-800 rounded-2xl px-6 py-4">
+              <div className="bg-white border border-slate-200 shadow-xs rounded-2xl px-6 py-4">
                 <h2 className="text-lg font-bold flex items-center gap-2">
-                  <FileText className="h-5 w-5 text-violet-400" />
+                  <FileText className="h-5 w-5 text-teal-700" />
                   Active Sourcing Requests (RFQ Board)
                 </h2>
                 <p className="text-xs text-slate-400 mt-0.5">Browse active fabric requests posted by verified apparel manufacturers and submit custom pricing quotes.</p>
               </div>
 
               {rfqs.length === 0 ? (
-                <div className="bg-slate-900 border border-slate-800 rounded-2xl p-12 text-center text-slate-500 text-xs">
+                <div className="bg-white border border-slate-200 shadow-xs rounded-2xl p-12 text-center text-slate-400 text-xs">
                   No active sourcing requests posted on the board right now. Check back shortly!
                 </div>
               ) : (
@@ -749,42 +777,42 @@ export const SupplierDashboard: React.FC = () => {
                     return (
                       <div
                         key={rfq.id}
-                        className="bg-slate-900 border border-slate-800 rounded-2xl p-5 hover:border-slate-700 transition-colors flex flex-col md:flex-row justify-between gap-6"
+                        className="bg-white border border-slate-200 shadow-xs rounded-2xl p-5 hover:border-slate-700 transition-colors flex flex-col md:flex-row justify-between gap-6"
                       >
                         <div className="space-y-3 flex-1">
                           <div className="flex flex-wrap items-center gap-2">
-                            <h4 className="font-bold text-sm text-slate-200">{rfq.title}</h4>
-                            <span className="text-[9px] bg-slate-950 border border-slate-850 text-slate-400 px-2 py-0.5 rounded-md font-bold uppercase">
+                            <h4 className="font-bold text-sm text-slate-800">{rfq.title}</h4>
+                            <span className="text-[9px] bg-slate-50 border border-slate-200 text-slate-400 px-2 py-0.5 rounded-md font-bold uppercase">
                               {rfq.category}
                             </span>
-                            <span className="text-[9px] text-slate-500">Posted by {rfq.buyer?.businessName} ({rfq.buyer?.city})</span>
+                            <span className="text-[9px] text-slate-400">Posted by {rfq.buyer?.businessName} ({rfq.buyer?.city})</span>
                           </div>
 
                           <p className="text-slate-400 text-xs leading-relaxed">{rfq.description}</p>
 
                           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-2 border-t border-slate-950/40 text-xs text-slate-400">
                             <div>
-                              <span className="text-slate-500">Weight:</span> {rfq.specifications?.weight || "N/A"}
+                              <span className="text-slate-400">Weight:</span> {rfq.specifications?.weight || "N/A"}
                             </div>
                             <div>
-                              <span className="text-slate-500">Width:</span> {rfq.specifications?.width || "N/A"}
+                              <span className="text-slate-400">Width:</span> {rfq.specifications?.width || "N/A"}
                             </div>
                             <div>
-                              <span className="text-slate-500">Composition:</span> {rfq.specifications?.composition || "N/A"}
+                              <span className="text-slate-400">Composition:</span> {rfq.specifications?.composition || "N/A"}
                             </div>
                             {rfq.targetDate && (
                               <div>
-                                <span className="text-slate-500">Timeline:</span> {new Date(rfq.targetDate).toLocaleDateString()}
+                                <span className="text-slate-400">Timeline:</span> {new Date(rfq.targetDate).toLocaleDateString()}
                               </div>
                             )}
                           </div>
                         </div>
 
-                        <div className="flex flex-row md:flex-col items-end justify-between md:justify-center gap-4 border-t md:border-t-0 pt-4 md:pt-0 border-slate-900 md:min-w-[180px]">
+                        <div className="flex flex-row md:flex-col items-end justify-between md:justify-center gap-4 border-t md:border-t-0 pt-4 md:pt-0 border-slate-250 md:min-w-[180px]">
                           <div className="text-right">
                             <p className="text-xs text-slate-450 uppercase">Target Details</p>
-                            <p className="text-sm font-bold text-slate-200 mt-0.5">{rfq.quantity} meters</p>
-                            <p className="text-xs font-bold text-violet-400 mt-0.5">Target: ₹{rfq.targetPrice}/m</p>
+                            <p className="text-sm font-bold text-slate-800 mt-0.5">{rfq.quantity} meters</p>
+                            <p className="text-xs font-bold text-teal-700 mt-0.5">Target: ₹{rfq.targetPrice}/m</p>
                           </div>
 
                           {alreadyQuoted ? (
@@ -793,7 +821,7 @@ export const SupplierDashboard: React.FC = () => {
                                 ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400"
                                 : alreadyQuoted.status === "rejected"
                                 ? "bg-red-500/10 border-red-500/20 text-red-400"
-                                : "bg-slate-950 border-slate-800 text-slate-500"
+                                : "bg-slate-50 border-slate-200 text-slate-400"
                             }`}>
                               {alreadyQuoted.status === "accepted" ? (
                                 <>
@@ -806,7 +834,7 @@ export const SupplierDashboard: React.FC = () => {
                           ) : (
                             <button
                               onClick={() => handleOpenBidModal(rfq)}
-                              className="px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-500 text-xs font-bold text-white shadow-lg cursor-pointer"
+                              className="px-4 py-2 rounded-xl bg-teal-700 hover:bg-teal-850 text-xs font-bold text-white shadow-lg cursor-pointer"
                             >
                               Submit Quote
                             </button>
@@ -820,14 +848,14 @@ export const SupplierDashboard: React.FC = () => {
             </div>
 
             {/* My submitted bids log */}
-            <div className="space-y-4 pt-6 border-t border-slate-800">
+            <div className="space-y-4 pt-6 border-t border-slate-200">
               <h3 className="text-base font-bold flex items-center gap-2">
                 <Clock className="h-4.5 w-4.5 text-slate-400" />
                 Submitted Sourcing Bids ({myQuotes.length})
               </h3>
 
               {myQuotes.length === 0 ? (
-                <p className="text-slate-500 text-xs italic">You haven't submitted any bids on the RFQ board yet.</p>
+                <p className="text-slate-400 text-xs italic">You haven't submitted any bids on the RFQ board yet.</p>
               ) : (
                 <div className="space-y-3">
                   {myQuotes.map((quote) => (
@@ -835,29 +863,29 @@ export const SupplierDashboard: React.FC = () => {
                       key={quote.id}
                       className={`p-4 rounded-2xl border text-xs flex justify-between items-center transition-colors ${
                         quote.status === "accepted"
-                          ? "bg-emerald-950/15 border-emerald-500/25 text-slate-300"
+                          ? "bg-emerald-950/15 border-emerald-500/25 text-slate-700"
                           : quote.status === "rejected"
-                          ? "bg-slate-950/40 border-slate-900 opacity-60 text-slate-500"
-                          : "bg-slate-900/60 border-slate-800 text-slate-350"
+                          ? "bg-slate-50/40 border-slate-250 opacity-60 text-slate-400"
+                          : "bg-white/60 border-slate-200 text-slate-350"
                       }`}
                     >
                       <div className="space-y-1">
-                        <h5 className="font-bold text-slate-200 text-xs">RFQ: {quote.rfq?.title}</h5>
-                        <p className="text-[10px] text-slate-500">Customer: {quote.rfq?.buyer?.businessName} ({quote.rfq?.buyer?.city})</p>
-                        {quote.notes && <p className="text-[11px] text-slate-400 mt-1"><span className="text-slate-500">Quote Notes:</span> {quote.notes}</p>}
+                        <h5 className="font-bold text-slate-800 text-xs">RFQ: {quote.rfq?.title}</h5>
+                        <p className="text-[10px] text-slate-400">Customer: {quote.rfq?.buyer?.businessName} ({quote.rfq?.buyer?.city})</p>
+                        {quote.notes && <p className="text-[11px] text-slate-400 mt-1"><span className="text-slate-400">Quote Notes:</span> {quote.notes}</p>}
                       </div>
 
                       <div className="text-right flex items-center gap-6">
                         <div>
-                          <p className="font-bold text-violet-400">Bid: ₹{quote.offeredPrice}/m</p>
-                          <p className="text-[10px] text-slate-500 mt-0.5">Timeline: {quote.estimatedDeliveryDays} days</p>
+                          <p className="font-bold text-teal-700">Bid: ₹{quote.offeredPrice}/m</p>
+                          <p className="text-[10px] text-slate-400 mt-0.5">Timeline: {quote.estimatedDeliveryDays} days</p>
                         </div>
                         <span className={`px-2.5 py-1 rounded-lg text-[9px] font-bold uppercase border capitalize tracking-wider ${
                           quote.status === "accepted"
                             ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400"
                             : quote.status === "rejected"
                             ? "bg-red-500/10 border-red-500/20 text-red-400"
-                            : "bg-slate-950 border-slate-800 text-slate-400"
+                            : "bg-slate-50 border-slate-200 text-slate-400"
                         }`}>
                           {quote.status}
                         </span>
@@ -873,23 +901,23 @@ export const SupplierDashboard: React.FC = () => {
 
       {/* Add / Edit Product Modal */}
       {isProductModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-sm animate-fade-in">
-          <div className="w-full max-w-lg bg-slate-900 border border-slate-800 rounded-2xl p-6 relative max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-50/70 p-4 backdrop-blur-sm animate-fade-in">
+          <div className="w-full max-w-lg bg-white border border-slate-200 shadow-xs rounded-2xl p-6 relative max-h-[90vh] overflow-y-auto">
             <button
               onClick={() => setIsProductModalOpen(false)}
-              className="absolute top-4 right-4 p-1.5 rounded-lg bg-slate-950 hover:bg-slate-850 text-slate-400 hover:text-white cursor-pointer"
+              className="absolute top-4 right-4 p-1.5 rounded-lg bg-slate-50 hover:bg-slate-850 text-slate-400 hover:text-white cursor-pointer"
             >
               <X className="h-4.5 w-4.5" />
             </button>
 
-            <h3 className="font-extrabold text-lg border-b border-slate-800 pb-3">
+            <h3 className="font-extrabold text-lg border-b border-slate-200 pb-3">
               {editingProduct ? "Edit Product Specifications" : "List New Fabric Product"}
             </h3>
 
             {/* AI Autocomplete helper block */}
             {!editingProduct && (
               <div className="bg-violet-950/20 border border-violet-800/30 p-4 rounded-xl space-y-2 mt-4">
-                <span className="flex items-center gap-1.5 text-[10px] font-bold text-violet-400 uppercase tracking-wider">
+                <span className="flex items-center gap-1.5 text-[10px] font-bold text-teal-700 uppercase tracking-wider">
                   <Sparkles className="h-3.5 w-3.5 animate-pulse" /> AI Autocomplete Spec Helper
                 </span>
                 <p className="text-[10px] text-slate-400">Describe the fabric in one line, and the AI will auto-fill the form parameters below.</p>
@@ -899,13 +927,13 @@ export const SupplierDashboard: React.FC = () => {
                     value={aiPrompt}
                     onChange={(e) => setAiPrompt(e.target.value)}
                     placeholder="e.g. soft charcoal merino wool under 450 for blazers"
-                    className="flex-1 px-3 py-2 rounded-lg bg-slate-950 border border-slate-800 text-[11px] focus:outline-none focus:border-violet-600"
+                    className="flex-1 px-3 py-2 rounded-lg bg-slate-50 border border-slate-200 text-[11px] focus:outline-none focus:border-teal-700"
                   />
                   <button
                     type="button"
                     onClick={handleAiFill}
                     disabled={aiGenerating}
-                    className="px-3.5 py-2 rounded-lg bg-violet-600 hover:bg-violet-500 font-bold text-[10px] shadow cursor-pointer text-white disabled:opacity-50"
+                    className="px-3.5 py-2 rounded-lg bg-teal-700 hover:bg-teal-850 font-bold text-[10px] shadow cursor-pointer text-white disabled:opacity-50"
                   >
                     {aiGenerating ? "Generating..." : "AI Auto-fill"}
                   </button>
@@ -913,7 +941,7 @@ export const SupplierDashboard: React.FC = () => {
               </div>
             )}
 
-            <form onSubmit={handleProductSubmit} className="space-y-4 mt-6 text-xs text-slate-200">
+            <form onSubmit={handleProductSubmit} className="space-y-4 mt-6 text-xs text-slate-800">
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
@@ -925,7 +953,7 @@ export const SupplierDashboard: React.FC = () => {
                     value={prodName}
                     onChange={(e) => setProdName(e.target.value)}
                     placeholder="e.g. Organic Pima Cotton"
-                    className="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-800 focus:border-violet-600 focus:outline-none"
+                    className="w-full px-3 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus:border-teal-700 focus:outline-none"
                   />
                 </div>
                 <div>
@@ -935,7 +963,7 @@ export const SupplierDashboard: React.FC = () => {
                   <select
                     value={prodCategory}
                     onChange={(e) => setProdCategory(e.target.value)}
-                    className="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-800 focus:border-violet-600 focus:outline-none"
+                    className="w-full px-3 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus:border-teal-700 focus:outline-none"
                   >
                     {["Cotton", "Silk", "Denim", "Linen", "Polyester", "Wool"].map((cat) => (
                       <option key={cat}>{cat}</option>
@@ -953,7 +981,7 @@ export const SupplierDashboard: React.FC = () => {
                   onChange={(e) => setProdDesc(e.target.value)}
                   placeholder="Detail weave style, yarn counts, certifications..."
                   rows={2}
-                  className="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-800 focus:border-violet-600 focus:outline-none"
+                  className="w-full px-3 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus:border-teal-700 focus:outline-none"
                 />
               </div>
 
@@ -967,7 +995,7 @@ export const SupplierDashboard: React.FC = () => {
                     value={prodWeight}
                     onChange={(e) => setProdWeight(e.target.value)}
                     placeholder="e.g. 150 gsm"
-                    className="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-800 focus:border-violet-600 focus:outline-none"
+                    className="w-full px-3 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus:border-teal-700 focus:outline-none"
                   />
                 </div>
                 <div>
@@ -979,7 +1007,7 @@ export const SupplierDashboard: React.FC = () => {
                     value={prodWidth}
                     onChange={(e) => setProdWidth(e.target.value)}
                     placeholder="e.g. 58 inches"
-                    className="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-800 focus:border-violet-600 focus:outline-none"
+                    className="w-full px-3 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus:border-teal-700 focus:outline-none"
                   />
                 </div>
                 <div>
@@ -991,7 +1019,7 @@ export const SupplierDashboard: React.FC = () => {
                     value={prodComp}
                     onChange={(e) => setProdComp(e.target.value)}
                     placeholder="e.g. 100% Cotton"
-                    className="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-800 focus:border-violet-600 focus:outline-none"
+                    className="w-full px-3 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus:border-teal-700 focus:outline-none"
                   />
                 </div>
               </div>
@@ -1005,7 +1033,7 @@ export const SupplierDashboard: React.FC = () => {
                   value={prodColors}
                   onChange={(e) => setProdColors(e.target.value)}
                   placeholder="White, Blue, Black"
-                  className="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-800 focus:border-violet-600 focus:outline-none"
+                  className="w-full px-3 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus:border-teal-700 focus:outline-none"
                 />
               </div>
 
@@ -1019,7 +1047,7 @@ export const SupplierDashboard: React.FC = () => {
                     required
                     value={prodPrice}
                     onChange={(e) => setProdPrice(parseFloat(e.target.value) || 0)}
-                    className="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-800 focus:border-violet-600 focus:outline-none"
+                    className="w-full px-3 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus:border-teal-700 focus:outline-none"
                   />
                 </div>
                 <div>
@@ -1031,7 +1059,7 @@ export const SupplierDashboard: React.FC = () => {
                     required
                     value={prodStock}
                     onChange={(e) => setProdStock(parseInt(e.target.value) || 0)}
-                    className="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-800 focus:border-violet-600 focus:outline-none"
+                    className="w-full px-3 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus:border-teal-700 focus:outline-none"
                   />
                 </div>
                 <div>
@@ -1043,27 +1071,46 @@ export const SupplierDashboard: React.FC = () => {
                     required
                     value={prodMOQ}
                     onChange={(e) => setProdMOQ(parseInt(e.target.value) || 0)}
-                    className="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-800 focus:border-violet-600 focus:outline-none"
+                    className="w-full px-3 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus:border-teal-700 focus:outline-none"
                   />
                 </div>
               </div>
 
-              <div>
+               <div>
                 <label className="block text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
-                  Product Image URL
+                  Product Fabric Image (Cloudinary)
                 </label>
-                <input
-                  type="text"
-                  value={prodImageUrl}
-                  onChange={(e) => setProdImageUrl(e.target.value)}
-                  placeholder="https://example.com/texture.jpg"
-                  className="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-800 focus:border-violet-600 focus:outline-none"
-                />
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={prodImageUrl}
+                    onChange={(e) => setProdImageUrl(e.target.value)}
+                    placeholder="https://example.com/texture.jpg or upload below"
+                    className="flex-1 px-3 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus:border-teal-700 focus:outline-none"
+                  />
+                  <label className="px-4 py-2.5 rounded-xl bg-slate-850 border border-slate-200 text-xs font-bold text-slate-700 cursor-pointer hover:bg-slate-800 transition-colors">
+                    Upload
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleImageUpload}
+                    />
+                  </label>
+                </div>
+                {uploadingImage && (
+                  <p className="text-[10px] text-teal-400 font-semibold mt-1">Uploading swatch to Cloudinary...</p>
+                )}
+                {prodImageUrl && (
+                  <div className="mt-2 relative h-16 w-16 border border-slate-200 rounded-lg overflow-hidden">
+                    <img src={prodImageUrl} alt="Preview" className="h-full w-full object-cover" />
+                  </div>
+                )}
               </div>
 
               <button
                 type="submit"
-                className="w-full py-3 bg-gradient-to-tr from-violet-600 to-indigo-600 hover:opacity-95 rounded-xl font-bold text-xs shadow-lg mt-4 cursor-pointer text-white"
+                className="w-full py-3 bg-teal-700 hover:bg-teal-800 hover:opacity-95 rounded-xl font-bold text-xs shadow-lg mt-4 cursor-pointer text-white"
               >
                 {editingProduct ? "Save Fabric Updates" : "List Fabric Product"}
               </button>
@@ -1074,21 +1121,21 @@ export const SupplierDashboard: React.FC = () => {
 
       {/* Quote / Bid Modal */}
       {isQuoteModalOpen && biddingRfq && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-sm bg-slate-900 border border-slate-800 rounded-2xl p-6 relative">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-50/70 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-sm bg-white border border-slate-200 shadow-xs rounded-2xl p-6 relative">
             <button
               onClick={() => setIsQuoteModalOpen(false)}
-              className="absolute top-4 right-4 p-1.5 rounded-lg bg-slate-950 hover:bg-slate-850 text-slate-400 hover:text-white cursor-pointer"
+              className="absolute top-4 right-4 p-1.5 rounded-lg bg-slate-50 hover:bg-slate-850 text-slate-400 hover:text-white cursor-pointer"
             >
               <X className="h-4.5 w-4.5" />
             </button>
-            <h3 className="font-extrabold text-sm border-b border-slate-800 pb-3">
+            <h3 className="font-extrabold text-sm border-b border-slate-200 pb-3">
               Submit Sourcing Quote
             </h3>
-            <form onSubmit={handlePostBid} className="space-y-4 mt-6 text-xs text-slate-200">
+            <form onSubmit={handlePostBid} className="space-y-4 mt-6 text-xs text-slate-800">
               <p className="text-slate-400">
                 Bidding on: <span className="font-bold text-slate-350">{biddingRfq.title}</span><br />
-                Target Price: <span className="font-bold text-violet-400">₹{biddingRfq.targetPrice}/m</span> • Required Qty: <span className="font-bold text-slate-300">{biddingRfq.quantity}m</span>
+                Target Price: <span className="font-bold text-teal-700">₹{biddingRfq.targetPrice}/m</span> • Required Qty: <span className="font-bold text-slate-700">{biddingRfq.quantity}m</span>
               </p>
 
               <div>
@@ -1101,7 +1148,7 @@ export const SupplierDashboard: React.FC = () => {
                   min={1}
                   value={bidPrice}
                   onChange={(e) => setBidPrice(parseFloat(e.target.value) || 0)}
-                  className="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-800 focus:border-violet-600 focus:outline-none"
+                  className="w-full px-3 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus:border-teal-700 focus:outline-none"
                 />
               </div>
 
@@ -1115,7 +1162,7 @@ export const SupplierDashboard: React.FC = () => {
                   min={1}
                   value={bidDeliveryDays}
                   onChange={(e) => setBidDeliveryDays(parseInt(e.target.value) || 0)}
-                  className="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-800 focus:border-violet-600 focus:outline-none"
+                  className="w-full px-3 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus:border-teal-700 focus:outline-none"
                 />
               </div>
 
@@ -1128,14 +1175,14 @@ export const SupplierDashboard: React.FC = () => {
                   value={bidNotes}
                   onChange={(e) => setBidNotes(e.target.value)}
                   placeholder="Detail your yarn metrics, wash finish specifications, or bulk discounts..."
-                  className="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-800 focus:border-violet-600 focus:outline-none"
+                  className="w-full px-3 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus:border-teal-700 focus:outline-none"
                 />
               </div>
 
               <button
                 type="submit"
                 disabled={submittingBid}
-                className="w-full py-3 bg-violet-600 hover:bg-violet-500 rounded-xl font-bold text-xs text-white shadow-lg cursor-pointer disabled:opacity-50"
+                className="w-full py-3 bg-teal-700 hover:bg-teal-850 rounded-xl font-bold text-xs text-white shadow-lg cursor-pointer disabled:opacity-50"
               >
                 {submittingBid ? "Submitting Bid..." : "Submit Proposal Bid"}
               </button>
@@ -1146,20 +1193,20 @@ export const SupplierDashboard: React.FC = () => {
 
       {/* Dispatch Logistics Tracking Modal */}
       {trackingModalOrder && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-sm bg-slate-900 border border-slate-800 rounded-2xl p-6 relative">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-50/70 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-sm bg-white border border-slate-200 shadow-xs rounded-2xl p-6 relative">
             <button
               onClick={() => setTrackingModalOrder(null)}
-              className="absolute top-4 right-4 p-1.5 rounded-lg bg-slate-950 hover:bg-slate-855 text-slate-400 hover:text-white cursor-pointer"
+              className="absolute top-4 right-4 p-1.5 rounded-lg bg-slate-50 hover:bg-slate-855 text-slate-400 hover:text-white cursor-pointer"
             >
               <X className="h-4.5 w-4.5" />
             </button>
-            <h3 className="font-extrabold text-sm border-b border-slate-800 pb-3">
+            <h3 className="font-extrabold text-sm border-b border-slate-200 pb-3">
               Shipment Logistics Dispatch
             </h3>
-            <form onSubmit={handleDispatchSubmit} className="space-y-4 mt-6 text-xs text-slate-200">
+            <form onSubmit={handleDispatchSubmit} className="space-y-4 mt-6 text-xs text-slate-800">
               <p className="text-slate-400">
-                You are dispatching order <span className="font-mono font-bold text-slate-300">#{trackingModalOrder.id.slice(0, 8)}</span> for <span className="font-bold text-slate-300">{trackingModalOrder.buyer?.businessName}</span>.
+                You are dispatching order <span className="font-mono font-bold text-slate-700">#{trackingModalOrder.id.slice(0, 8)}</span> for <span className="font-bold text-slate-700">{trackingModalOrder.buyer?.businessName}</span>.
               </p>
               <div>
                 <label className="block text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
@@ -1171,12 +1218,12 @@ export const SupplierDashboard: React.FC = () => {
                   value={trackingNumberInput}
                   onChange={(e) => setTrackingNumberInput(e.target.value)}
                   placeholder="e.g. DHL-98327429"
-                  className="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-800 focus:border-violet-600 focus:outline-none"
+                  className="w-full px-3 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus:border-teal-700 focus:outline-none"
                 />
               </div>
               <button
                 type="submit"
-                className="w-full py-3 bg-violet-600 hover:bg-violet-500 rounded-xl font-bold text-xs text-white shadow-lg cursor-pointer"
+                className="w-full py-3 bg-teal-700 hover:bg-teal-850 rounded-xl font-bold text-xs text-white shadow-lg cursor-pointer"
               >
                 Log Dispatch Shipment
               </button>

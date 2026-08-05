@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth.ts";
 import { useCart } from "../hooks/useCart.ts";
+import { useToast } from "../components/Toast.tsx";
 import { productService } from "../services/product.service.ts";
 import { orderService } from "../services/order.service.ts";
 import { AIChatPanel } from "../components/AIChatPanel.tsx";
@@ -43,6 +44,7 @@ interface Product {
 
 export const BuyerHome: React.FC = () => {
   const { user, logoutUser, profile } = useAuth();
+  const { showToast } = useToast();
   const {
     items: cartItems,
     fetchCart,
@@ -121,7 +123,7 @@ export const BuyerHome: React.FC = () => {
   const handleAddToCartFromDetail = async () => {
     if (!selectedProduct) return;
     if (detailQty < selectedProduct.moq) {
-      alert(`Minimum Order Quantity (MOQ) is ${selectedProduct.moq}m.`);
+      showToast(`Minimum Order Quantity (MOQ) is ${selectedProduct.moq}m.`, "error");
       return;
     }
     try {
@@ -129,14 +131,14 @@ export const BuyerHome: React.FC = () => {
       setSelectedProduct(null);
       setIsCartOpen(true);
     } catch (err: any) {
-      alert(err.message || "Failed to add to cart");
+      showToast(err.message || "Failed to add to cart", "error");
     }
   };
 
   const handleCheckoutSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!shippingAddress || !shippingPhone || !shippingName) {
-      alert("Please fill out all shipping details.");
+      showToast("Please fill out all shipping details.", "error");
       return;
     }
     try {
@@ -149,7 +151,7 @@ export const BuyerHome: React.FC = () => {
       setCheckoutSuccess(true);
       setIsCheckingOut(false);
     } catch (err: any) {
-      alert(err.message || "Checkout failed");
+      showToast(err.message || "Checkout failed", "error");
     }
   };
 
