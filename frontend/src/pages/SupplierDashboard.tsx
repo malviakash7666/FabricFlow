@@ -323,23 +323,60 @@ export const SupplierDashboard: React.FC = () => {
     setIsQuoteModalOpen(true);
   };
 
-  // Stock quick updater
+  // Update single product state and recalculate statistics locally
+  const updateProductInState = (id: string, updatedFields: Partial<Product>) => {
+    setProducts((prevProducts) => {
+      const nextProducts = prevProducts.map((p) =>
+        p.id === id ? { ...p, ...updatedFields } : p
+      );
+      
+      // Recalculate stats locally
+      const totalProducts = nextProducts.length;
+      const activeProducts = nextProducts.filter((p) => p.isAvailable).length;
+      const lowStockAlerts = nextProducts.filter((p) => p.stock < 500).length;
+      
+      setStats((prevStats) => ({
+        ...prevStats,
+        totalProducts,
+        activeProducts,
+        lowStockAlerts,
+      }));
+
+      return nextProducts;
+    });
+  };
+
+  // Stock quick updater (Optimistic update)
   const handleQuickStockUpdate = async (id: string, newStock: number) => {
     if (newStock < 0) return;
+
+    const originalProduct = products.find((p) => p.id === id);
+    if (!originalProduct) return;
+
+    // Optimistically update UI
+    updateProductInState(id, { stock: newStock });
+
     try {
       await productService.updateProduct(id, { stock: newStock });
-      loadDashboardData();
     } catch (err) {
-      showToast("Failed to update stock", "error");
+      // Revert to original stock on failure
+      updateProductInState(id, { stock: originalProduct.stock });
+      showToast("Failed to update stock in database", "error");
     }
   };
 
-  // Toggle availability
+  // Toggle availability (Optimistic update)
   const handleToggleAvailability = async (prod: Product) => {
+    const nextVal = !prod.isAvailable;
+
+    // Optimistically update UI
+    updateProductInState(prod.id, { isAvailable: nextVal });
+
     try {
-      await productService.updateProduct(prod.id, { isAvailable: !prod.isAvailable });
-      loadDashboardData();
+      await productService.updateProduct(prod.id, { isAvailable: nextVal });
     } catch (err) {
+      // Revert to original availability on failure
+      updateProductInState(prod.id, { isAvailable: prod.isAvailable });
       showToast("Failed to update availability", "error");
     }
   };
