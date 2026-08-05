@@ -203,7 +203,7 @@ export const BuyerDashboard: React.FC = () => {
         <div className="flex justify-between items-center">
           <Link
             to="/marketplace"
-            className="flex items-center gap-2 text-xs font-semibold text-slate-400 hover:text-white transition-colors"
+            className="flex items-center gap-2 text-xs font-semibold text-slate-500 hover:text-teal-750 transition-colors"
           >
             <ArrowLeft className="h-4 w-4" />
             Back to Catalog
@@ -249,7 +249,7 @@ export const BuyerDashboard: React.FC = () => {
             className={`px-6 py-3 font-extrabold text-xs tracking-wider uppercase border-b-2 transition-all cursor-pointer ${
               activeTab === "orders"
                 ? "border-teal-700 text-teal-700"
-                : "border-transparent text-slate-400 hover:text-white"
+                : "border-transparent text-slate-500 hover:text-teal-700"
             }`}
           >
             <div className="flex items-center gap-2">
@@ -262,7 +262,7 @@ export const BuyerDashboard: React.FC = () => {
             className={`px-6 py-3 font-extrabold text-xs tracking-wider uppercase border-b-2 transition-all cursor-pointer ${
               activeTab === "rfqs"
                 ? "border-teal-700 text-teal-700"
-                : "border-transparent text-slate-400 hover:text-white"
+                : "border-transparent text-slate-500 hover:text-teal-700"
             }`}
           >
             <div className="flex items-center gap-2">
@@ -631,7 +631,7 @@ export const BuyerDashboard: React.FC = () => {
           <div className="w-full max-w-lg bg-white border border-slate-200 shadow-xs rounded-2xl p-6 relative text-slate-800">
             <button
               onClick={() => setIsRfqModalOpen(false)}
-              className="absolute top-4 right-4 p-1.5 rounded-lg bg-slate-50 hover:bg-slate-800 text-slate-400 hover:text-white cursor-pointer"
+              className="absolute top-4 right-4 p-1.5 rounded-lg bg-slate-50 hover:bg-slate-200 text-slate-500 hover:text-slate-800 cursor-pointer"
             >
               <X className="h-4.5 w-4.5" />
             </button>

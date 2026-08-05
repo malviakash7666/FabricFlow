@@ -394,7 +394,7 @@ export const SupplierDashboard: React.FC = () => {
           <div className="h-8 w-8 rounded-lg bg-teal-700 flex items-center justify-center font-bold text-sm shadow">
             FF
           </div>
-          <span className="font-extrabold text-lg tracking-tight bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">
+          <span className="font-extrabold text-lg tracking-tight text-teal-900">
             FabricFlow Mill Manager
           </span>
         </div>
@@ -476,7 +476,7 @@ export const SupplierDashboard: React.FC = () => {
             className={`px-6 py-3 font-bold text-sm border-b-2 transition-all cursor-pointer ${
               activeTab === "inventory"
                 ? "border-teal-700 text-teal-700"
-                : "border-transparent text-slate-400 hover:text-white"
+                : "border-transparent text-slate-500 hover:text-teal-700"
             }`}
           >
             Inventory Hub
@@ -486,7 +486,7 @@ export const SupplierDashboard: React.FC = () => {
             className={`px-6 py-3 font-bold text-sm border-b-2 transition-all cursor-pointer ${
               activeTab === "orders"
                 ? "border-teal-700 text-teal-700"
-                : "border-transparent text-slate-400 hover:text-white"
+                : "border-transparent text-slate-500 hover:text-teal-700"
             }`}
           >
             Incoming Wholesale Orders
@@ -496,7 +496,7 @@ export const SupplierDashboard: React.FC = () => {
             className={`px-6 py-3 font-bold text-sm border-b-2 transition-all cursor-pointer ${
               activeTab === "rfqs"
                 ? "border-teal-700 text-teal-700"
-                : "border-transparent text-slate-400 hover:text-white"
+                : "border-transparent text-slate-500 hover:text-teal-700"
             }`}
           >
             Bidding Sourcing Board
@@ -567,7 +567,7 @@ export const SupplierDashboard: React.FC = () => {
                         <div className="flex items-center bg-slate-50 border border-slate-200 rounded-lg px-1">
                           <button
                             onClick={() => handleQuickStockUpdate(prod.id, Math.max(0, prod.stock - 100))}
-                            className="p-1.5 text-slate-400 hover:text-white"
+                            className="p-1.5 text-slate-500 hover:text-teal-700"
                           >
                             <Minus className="h-3 w-3" />
                           </button>
@@ -597,7 +597,7 @@ export const SupplierDashboard: React.FC = () => {
                       </button>
                       <button
                         onClick={() => handleOpenEditProduct(prod)}
-                        className="p-2 rounded-lg bg-slate-50 border border-slate-200 hover:bg-white text-slate-400 hover:text-white cursor-pointer"
+                        className="p-2 rounded-lg bg-slate-50 border border-slate-200 hover:bg-white text-slate-500 hover:text-slate-800 cursor-pointer"
                         title="Edit specifications"
                       >
                         <Edit2 className="h-3.5 w-3.5" />
@@ -905,7 +905,7 @@ export const SupplierDashboard: React.FC = () => {
           <div className="w-full max-w-lg bg-white border border-slate-200 shadow-xs rounded-2xl p-6 relative max-h-[90vh] overflow-y-auto">
             <button
               onClick={() => setIsProductModalOpen(false)}
-              className="absolute top-4 right-4 p-1.5 rounded-lg bg-slate-50 hover:bg-slate-850 text-slate-400 hover:text-white cursor-pointer"
+              className="absolute top-4 right-4 p-1.5 rounded-lg bg-slate-50 hover:bg-slate-200 text-slate-500 hover:text-slate-800 cursor-pointer"
             >
               <X className="h-4.5 w-4.5" />
             </button>
@@ -1125,7 +1125,7 @@ export const SupplierDashboard: React.FC = () => {
           <div className="w-full max-w-sm bg-white border border-slate-200 shadow-xs rounded-2xl p-6 relative">
             <button
               onClick={() => setIsQuoteModalOpen(false)}
-              className="absolute top-4 right-4 p-1.5 rounded-lg bg-slate-50 hover:bg-slate-850 text-slate-400 hover:text-white cursor-pointer"
+              className="absolute top-4 right-4 p-1.5 rounded-lg bg-slate-50 hover:bg-slate-200 text-slate-500 hover:text-slate-800 cursor-pointer"
             >
               <X className="h-4.5 w-4.5" />
             </button>
@@ -1197,7 +1197,7 @@ export const SupplierDashboard: React.FC = () => {
           <div className="w-full max-w-sm bg-white border border-slate-200 shadow-xs rounded-2xl p-6 relative">
             <button
               onClick={() => setTrackingModalOrder(null)}
-              className="absolute top-4 right-4 p-1.5 rounded-lg bg-slate-50 hover:bg-slate-855 text-slate-400 hover:text-white cursor-pointer"
+              className="absolute top-4 right-4 p-1.5 rounded-lg bg-slate-50 hover:bg-slate-200 text-slate-500 hover:text-slate-800 cursor-pointer"
             >
               <X className="h-4.5 w-4.5" />
             </button>
