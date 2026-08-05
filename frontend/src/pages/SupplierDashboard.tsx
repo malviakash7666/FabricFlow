@@ -562,12 +562,17 @@ export const SupplierDashboard: React.FC = () => {
                       <p className="text-[10px] text-slate-400 font-bold mt-1">₹{prod.price}/meter • MOQ: {prod.moq}m</p>
 
                       {/* Stock Quick Editor */}
-                      <div className="mt-4 flex items-center justify-between gap-2 border-t border-slate-950/40 pt-3">
+                      <div className="mt-4 flex items-center justify-between gap-2 border-t border-slate-200 pt-3">
                         <span className="text-[10px] text-slate-400">Stock meters:</span>
                         <div className="flex items-center bg-slate-50 border border-slate-200 rounded-lg px-1">
                           <button
-                            onClick={() => handleQuickStockUpdate(prod.id, Math.max(0, prod.stock - 100))}
-                            className="p-1.5 text-slate-500 hover:text-teal-700"
+                            type="button"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              handleQuickStockUpdate(prod.id, Math.max(0, prod.stock - 100));
+                            }}
+                            className="p-1.5 text-slate-500 hover:text-teal-700 cursor-pointer"
                           >
                             <Minus className="h-3 w-3" />
                           </button>
@@ -575,8 +580,13 @@ export const SupplierDashboard: React.FC = () => {
                             {prod.stock}m
                           </span>
                           <button
-                            onClick={() => handleQuickStockUpdate(prod.id, prod.stock + 100)}
-                            className="p-1.5 text-slate-400 hover:text-white"
+                            type="button"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              handleQuickStockUpdate(prod.id, prod.stock + 100);
+                            }}
+                            className="p-1.5 text-slate-550 hover:text-teal-700 cursor-pointer"
                           >
                             <Plus className="h-3 w-3" />
                           </button>
@@ -584,9 +594,14 @@ export const SupplierDashboard: React.FC = () => {
                       </div>
                     </div>
 
-                    <div className="mt-4 pt-3 border-t border-slate-955/40 flex items-center justify-between gap-2">
+                    <div className="mt-4 pt-3 border-t border-slate-200 flex items-center justify-between gap-2">
                       <button
-                        onClick={() => handleToggleAvailability(prod)}
+                        type="button"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          handleToggleAvailability(prod);
+                        }}
                         className={`flex-1 py-2 text-[10px] font-bold rounded-lg border transition-colors cursor-pointer ${
                           prod.isAvailable
                             ? "bg-slate-50 border-slate-200 text-slate-400 hover:bg-white"
@@ -596,14 +611,24 @@ export const SupplierDashboard: React.FC = () => {
                         {prod.isAvailable ? "Disable Item" : "Enable Item"}
                       </button>
                       <button
-                        onClick={() => handleOpenEditProduct(prod)}
+                        type="button"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          handleOpenEditProduct(prod);
+                        }}
                         className="p-2 rounded-lg bg-slate-50 border border-slate-200 hover:bg-white text-slate-500 hover:text-slate-800 cursor-pointer"
                         title="Edit specifications"
                       >
                         <Edit2 className="h-3.5 w-3.5" />
                       </button>
                       <button
-                        onClick={() => handleDeleteProduct(prod.id)}
+                        type="button"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          handleDeleteProduct(prod.id);
+                        }}
                         className="p-2 rounded-lg bg-slate-50 border border-slate-200 hover:bg-red-500/10 text-slate-400 hover:text-red-400 cursor-pointer"
                         title="Delete listing"
                       >
