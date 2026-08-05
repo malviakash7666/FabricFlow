@@ -978,11 +978,11 @@ export const SupplierDashboard: React.FC = () => {
 
             {/* AI Autocomplete helper block */}
             {!editingProduct && (
-              <div className="bg-violet-950/20 border border-violet-800/30 p-4 rounded-xl space-y-2 mt-4">
-                <span className="flex items-center gap-1.5 text-[10px] font-bold text-teal-700 uppercase tracking-wider">
-                  <Sparkles className="h-3.5 w-3.5 animate-pulse" /> AI Autocomplete Spec Helper
+              <div className="bg-teal-50 border border-teal-200/50 p-4 rounded-xl space-y-2 mt-4">
+                <span className="flex items-center gap-1.5 text-[10px] font-bold text-teal-800 uppercase tracking-wider">
+                  <Sparkles className="h-3.5 w-3.5 text-teal-700 animate-pulse" /> AI Autocomplete Spec Helper
                 </span>
-                <p className="text-[10px] text-slate-400">Describe the fabric in one line, and the AI will auto-fill the form parameters below.</p>
+                <p className="text-[10px] text-slate-600 font-semibold leading-relaxed">Describe the fabric in one line, and the AI will auto-fill the form parameters below.</p>
                 <div className="flex gap-2">
                   <input
                     type="text"

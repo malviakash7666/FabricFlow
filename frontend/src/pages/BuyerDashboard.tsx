@@ -518,7 +518,7 @@ export const BuyerDashboard: React.FC = () => {
                           <div>
                             <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Received Bids</p>
                             <h4 className="text-xs font-semibold text-slate-700 mt-1 flex items-center gap-1.5">
-                              <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${bidsCount > 0 ? "bg-violet-950 text-teal-700 border border-violet-800" : "bg-slate-50 text-slate-400"}`}>
+                              <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${bidsCount > 0 ? "bg-teal-50 text-teal-700 border border-teal-200/50" : "bg-slate-50 text-slate-400"}`}>
                                 {bidsCount} supplier bids
                               </span>
                             </h4>
