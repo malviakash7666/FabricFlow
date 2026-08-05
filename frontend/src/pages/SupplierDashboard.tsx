@@ -391,10 +391,10 @@ export const SupplierDashboard: React.FC = () => {
       {/* Header bar */}
       <header className="sticky top-0 z-30 bg-white border-b border-slate-200 text-slate-800 shadow-xs px-6 py-4 flex items-center justify-between">
         <div className="flex items-center space-x-2">
-          <div className="h-8 w-8 rounded-lg bg-teal-700 flex items-center justify-center font-bold text-sm shadow">
+          <div className="h-8 w-8 rounded-lg bg-teal-700 flex items-center justify-center font-bold text-sm text-white shadow">
             FF
           </div>
-          <span className="font-extrabold text-lg tracking-tight text-teal-900">
+          <span className="font-extrabold text-lg tracking-tight text-slate-900">
             FabricFlow Mill Manager
           </span>
         </div>
@@ -514,9 +514,9 @@ export const SupplierDashboard: React.FC = () => {
               </div>
               <button
                 onClick={handleOpenAddProduct}
-                className="flex items-center gap-1.5 rounded-xl bg-teal-700 hover:bg-teal-850 px-4 py-2.5 text-xs font-bold cursor-pointer"
+                className="flex items-center gap-1.5 rounded-xl bg-teal-700 hover:bg-teal-850 px-4 py-2.5 text-xs font-bold text-white cursor-pointer shadow-sm hover:shadow-md transition-all active:scale-95"
               >
-                <Plus className="h-4 w-4" />
+                <Plus className="h-4 w-4 text-white" />
                 Add Product
               </button>
             </div>
