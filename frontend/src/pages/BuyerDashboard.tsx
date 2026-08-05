@@ -54,6 +54,7 @@ interface Order {
 
 export const BuyerDashboard: React.FC = () => {
   const { user, profile } = useAuth();
+  const { showToast } = useToast();
   const [orders, setOrders] = useState<Order[]>([]);
   const [rfqs, setRfqs] = useState<Rfq[]>([]);
   const [activeTab, setActiveTab] = useState<"orders" | "rfqs">("orders");
