@@ -392,33 +392,72 @@ export const SupplierDashboard: React.FC = () => {
     }
   };
 
-  // Advance Order Status
+  // Update single order state and recalculate statistics locally
+  const updateOrderInState = (id: string, updatedFields: Partial<Order>) => {
+    setOrders((prevOrders) => {
+      const nextOrders = prevOrders.map((o) =>
+        o.id === id ? { ...o, ...updatedFields } : o
+      );
+      
+      // Recalculate stats locally
+      const pendingOrders = nextOrders.filter((o) => o.status === "pending").length;
+      
+      setStats((prevStats) => ({
+        ...prevStats,
+        pendingOrders,
+      }));
+
+      return nextOrders;
+    });
+  };
+
+  // Advance Order Status (Optimistic update)
   const handleAdvanceOrderStatus = async (order: Order, nextStatus: string) => {
+    if (nextStatus === "ready_for_dispatch") {
+      setTrackingModalOrder(order);
+      setTrackingNumberInput("");
+      return;
+    }
+
+    // Optimistically update
+    updateOrderInState(order.id, { status: nextStatus as any });
+
     try {
-      if (nextStatus === "ready_for_dispatch") {
-        setTrackingModalOrder(order);
-        setTrackingNumberInput("");
-      } else {
-        await orderService.updateOrderStatus(order.id, { status: nextStatus });
-        loadDashboardData();
-      }
+      await orderService.updateOrderStatus(order.id, { status: nextStatus });
     } catch (err) {
+      // Revert status on failure
+      updateOrderInState(order.id, { status: order.status });
       showToast("Failed to update order status", "error");
     }
   };
 
-  // Dispatch Order with Tracking Number
+  // Dispatch Order with Tracking Number (Optimistic update)
   const handleDispatchSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!trackingModalOrder) return;
+    
+    const orderToDispatch = trackingModalOrder;
+    const trackingNum = trackingNumberInput;
+    
+    setTrackingModalOrder(null);
+    
+    // Optimistically update
+    updateOrderInState(orderToDispatch.id, { 
+      status: "ready_for_dispatch", 
+      trackingNumber: trackingNum 
+    });
+
     try {
-      await orderService.updateOrderStatus(trackingModalOrder.id, {
+      await orderService.updateOrderStatus(orderToDispatch.id, {
         status: "ready_for_dispatch",
-        trackingNumber: trackingNumberInput,
+        trackingNumber: trackingNum,
       });
-      setTrackingModalOrder(null);
-      loadDashboardData();
     } catch (err) {
+      // Revert status and tracking number on failure
+      updateOrderInState(orderToDispatch.id, { 
+        status: orderToDispatch.status, 
+        trackingNumber: orderToDispatch.trackingNumber 
+      });
       showToast("Failed to dispatch order.", "error");
     }
   };
