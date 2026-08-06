@@ -51,49 +51,73 @@ export const AIChatPanel: React.FC<AIChatPanelProps> = ({ onSelectProduct }) => 
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, loading]);
 
-  // Initialize Speech Recognition
+  // Create a ref for handleSend to avoid stale closures in speech callbacks
+  const handleSendRef = useRef<any>(null);
   useEffect(() => {
+    handleSendRef.current = handleSend;
+  }, [handleSend]);
+
+  const toggleListening = () => {
     const SpeechRecognition =
       (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
 
-    if (SpeechRecognition) {
-      const rec = new SpeechRecognition();
-      rec.continuous = false;
-      rec.interimResults = false;
-      rec.lang = "en-US";
-
-      rec.onstart = () => {
-        setIsListening(true);
-      };
-
-      rec.onresult = (event: any) => {
-        const transcript = event.results[0][0].transcript;
-        setInputText(transcript);
-      };
-
-      rec.onerror = (event: any) => {
-        console.error("Speech Recognition Error:", event.error);
-        setIsListening(false);
-      };
-
-      rec.onend = () => {
-        setIsListening(false);
-      };
-
-      recognitionRef.current = rec;
-    }
-  }, []);
-
-  const toggleListening = () => {
-    if (!recognitionRef.current) {
+    if (!SpeechRecognition) {
       showToast("Speech recognition is not supported in this browser.", "error");
       return;
     }
 
     if (isListening) {
-      recognitionRef.current.stop();
+      if (recognitionRef.current) {
+        recognitionRef.current.stop();
+      }
+      setIsListening(false);
     } else {
-      recognitionRef.current.start();
+      try {
+        const rec = new SpeechRecognition();
+        rec.continuous = false;
+        rec.interimResults = false;
+        rec.lang = "en-US";
+
+        rec.onstart = () => {
+          setIsListening(true);
+        };
+
+        rec.onresult = (event: any) => {
+          const transcript = event.results[0][0].transcript;
+          if (transcript) {
+            setInputText(transcript);
+            if (handleSendRef.current) {
+              handleSendRef.current(transcript);
+            }
+          }
+        };
+
+        rec.onerror = (event: any) => {
+          console.error("Speech Recognition Error:", event.error);
+          setIsListening(false);
+          if (event.error === "not-allowed") {
+            showToast("Microphone permission denied. Please allow microphone access in your browser settings.", "error");
+          } else if (event.error === "no-speech") {
+            // Silence no-speech error as it's common if user pauses
+            console.log("No speech detected.");
+          } else if (event.error === "audio-capture") {
+            showToast("Microphone not found. Please connect a microphone and try again.", "error");
+          } else {
+            showToast(`Speech recognition error: ${event.error}`, "error");
+          }
+        };
+
+        rec.onend = () => {
+          setIsListening(false);
+        };
+
+        recognitionRef.current = rec;
+        rec.start();
+      } catch (err: any) {
+        console.error("Failed to start speech recognition:", err);
+        showToast("Failed to start voice search. Please try again.", "error");
+        setIsListening(false);
+      }
     }
   };
 
