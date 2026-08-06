@@ -53,9 +53,6 @@ export const AIChatPanel: React.FC<AIChatPanelProps> = ({ onSelectProduct }) => 
 
   // Create a ref for handleSend to avoid stale closures in speech callbacks
   const handleSendRef = useRef<any>(null);
-  useEffect(() => {
-    handleSendRef.current = handleSend;
-  }, [handleSend]);
 
   const toggleListening = () => {
     const SpeechRecognition =
@@ -167,6 +164,11 @@ export const AIChatPanel: React.FC<AIChatPanelProps> = ({ onSelectProduct }) => 
       setLoading(false);
     }
   };
+
+  // Sync ref with handleSend (defined above, avoiding TDZ error)
+  useEffect(() => {
+    handleSendRef.current = handleSend;
+  }, [handleSend]);
 
   const speakText = (text: string) => {
     if ("speechSynthesis" in window) {
