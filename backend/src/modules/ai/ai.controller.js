@@ -119,7 +119,7 @@ Which of these would you like to add to your order? I can assist you with that.`
       // Query database
       const whereClause = { isAvailable: true, ...queryParams };
       if (detectedColor) {
-        whereClause.colors = { [Op.contains]: JSON.stringify([detectedColor]) };
+        whereClause.colors = { [Op.contains]: [detectedColor] };
       }
       if (searchKeyword) {
         whereClause[Op.or] = [

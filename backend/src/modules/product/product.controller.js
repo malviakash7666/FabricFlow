@@ -113,9 +113,8 @@ export const getProducts = async (req, res) => {
     // Color filter (using JSONB matching)
     if (color) {
       // In Sequelize, matching JSONB array elements:
-      // whereClause.colors = { [Op.contains]: [color] };
       whereClause.colors = {
-        [Op.contains]: JSON.stringify([color])
+        [Op.contains]: [color]
       };
     }
 
