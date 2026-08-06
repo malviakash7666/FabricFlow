@@ -99,6 +99,8 @@ export const AIChatPanel: React.FC<AIChatPanelProps> = ({ onSelectProduct }) => 
             console.log("No speech detected.");
           } else if (event.error === "audio-capture") {
             showToast("Microphone not found. Please connect a microphone and try again.", "error");
+          } else if (event.error === "network") {
+            showToast("Network Error: Chrome Speech Recognition requires a stable internet connection and access to Google Speech servers. Please verify your connection or try typing.", "error");
           } else {
             showToast(`Speech recognition error: ${event.error}`, "error");
           }

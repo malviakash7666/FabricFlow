@@ -16,9 +16,23 @@ export const OnboardingPage: React.FC = () => {
 
   // AI chat helpers
   const [aiMessage, setAiMessage] = useState("");
-  const [aiResponse, setAiResponse] = useState<string | null>(
-    "Hello! I am your Onboarding Assistant. 🤖 You can tell me about your business in plain English (e.g. 'I am a garment maker named Zara Fabrics based in Delhi. We source Cotton and Linen with order sizes around 800m and a 50k budget.'), and I will pre-fill the form for you!"
-  );
+  const [aiResponse, setAiResponse] = useState<string | null>("");
+
+  // Load email and update welcome message on mount/user load
+  useEffect(() => {
+    if (user) {
+      if (user.role === "supplier") {
+        if (user.email) setSupplierEmail(user.email);
+        setAiResponse(
+          "Hello! I am your Supplier Onboarding Assistant. 🏭 You can describe your textile mill in plain English (e.g. 'We are a textile mill named Vardhman Weaving based in Ahmedabad, Gujarat. We manufacture Cotton and Denim fabrics with a minimum order quantity of 300 meters. Contact person is Anil Patel, and phone is +91 9988776655.'), and I will pre-fill the mill profile for you!"
+        );
+      } else {
+        setAiResponse(
+          "Hello! I am your Onboarding Assistant. 🤖 You can tell me about your business in plain English (e.g. 'I am a garment maker named Zara Fabrics based in Delhi, Delhi. We source Cotton and Linen with order sizes around 800m and a 50k budget. Phone is +91 9876543210.'), and I will pre-fill the form for you!"
+        );
+      }
+    }
+  }, [user]);
 
   // Form states - Buyer
   const [buyerName, setBuyerName] = useState("");
@@ -61,19 +75,51 @@ export const OnboardingPage: React.FC = () => {
     setError(null);
     const text = aiMessage.toLowerCase();
 
+    // Heuristics for Phone Number Extraction (for both roles)
+    const phoneMatch = aiMessage.match(/(?:\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}/g) || 
+                       aiMessage.match(/(?:\+?91|0)?[6789]\d{9}/g);
+    
+    // Heuristics for State extraction (for both roles)
+    const statesList = ["Gujarat", "Maharashtra", "Delhi", "Punjab", "Rajasthan", "Tamil Nadu", "Karnataka", "West Bengal", "Uttar Pradesh", "Haryana"];
+    let detectedState = "";
+    statesList.forEach((st) => {
+      if (text.includes(st.toLowerCase())) {
+        detectedState = st;
+      }
+    });
+
     // Basic heuristic NLP extraction
     if (user?.role === "buyer") {
-      // Extract Business Name (heuristics like "named X" or "called Y")
-      const nameMatch = aiMessage.match(/(?:named|called|brand name is|company name is)\s*([a-zA-Z\s0-9]+?)(?:\s+based|\s+in|\s+we|\s+our|\s+and|\s+called|\.|$)/i);
-      if (nameMatch && nameMatch[1]) setBuyerName(nameMatch[1].trim());
+      // Extract Business Name
+      const nameMatch = aiMessage.match(/(?:named|called|brand name is|company name is|from)\s*([a-zA-Z\s0-9]+?)(?:\s+based|\s+in|\s+we|\s+our|\s+and|\s+called|\.|$)/i);
+      if (nameMatch && nameMatch[1]) {
+        setBuyerName(nameMatch[1].trim());
+      } else {
+        const startMatch = aiMessage.match(/^([a-zA-Z\s0-9]+?)\s+(?:based in|is based in|is a|apparel|garment)/i);
+        if (startMatch && startMatch[1]) setBuyerName(startMatch[1].trim());
+      }
 
       // Extract City/Location
-      const locationMatch = aiMessage.match(/(?:based in|located in|in|city of)\s*([a-zA-Z\s]+?)(?:\s+we|\s+our|\s+and|\s+named|\.|$)/i);
+      const locationMatch = aiMessage.match(/(?:based in|located in|in|city of)\s*([a-zA-Z\s]+?)(?:\s+we|\s+our|\s+and|\s+called|\.|$)/i);
       if (locationMatch && locationMatch[1]) {
-        const city = locationMatch[1].trim().split(" ")[0];
+        const rawCity = locationMatch[1].trim();
+        const parts = rawCity.split(/[\s,]+/);
+        const city = parts[0];
         setBuyerCity(city);
-        setBuyerState("Maharashtra"); // Mock state fallback
+        
+        let state = detectedState || "Maharashtra";
+        if (!detectedState && parts.length > 1) {
+          const possibleState = parts[1];
+          if (statesList.some(s => s.toLowerCase() === possibleState.toLowerCase())) {
+            state = possibleState;
+          }
+        }
+        setBuyerState(state);
         setBuyerAddress(`${city} Industrial Zone, ${city}`);
+      }
+
+      if (phoneMatch && phoneMatch[0]) {
+        setBuyerPhone(phoneMatch[0].trim());
       }
 
       // Extract Fabrics
@@ -92,7 +138,6 @@ export const OnboardingPage: React.FC = () => {
         if (budgetMatch[2]) {
           const val1 = parseInt(budgetMatch[1]);
           const val2 = parseInt(budgetMatch[2]);
-          // Standardize thousand k
           const min = val1 < 1000 ? val1 * 1000 : val1;
           const max = val2 < 1000 ? val2 * 1000 : val2;
           setBuyerBudgetMin(min);
@@ -114,19 +159,38 @@ export const OnboardingPage: React.FC = () => {
       );
     } else {
       // Supplier Extraction
-      const nameMatch = aiMessage.match(/(?:named|called|company name is)\s*([a-zA-Z\s0-9]+?)(?:\s+based|\s+in|\s+we|\s+our|\s+and|\.|$)/i);
-      if (nameMatch && nameMatch[1]) setSupplierName(nameMatch[1].trim());
+      const nameMatch = aiMessage.match(/(?:named|called|company name is|from)\s*([a-zA-Z\s0-9]+?)(?:\s+based|\s+in|\s+we|\s+our|\s+and|\.|$)/i);
+      if (nameMatch && nameMatch[1]) {
+        setSupplierName(nameMatch[1].trim());
+      } else {
+        const startMatch = aiMessage.match(/^([a-zA-Z\s0-9]+?)\s+(?:based in|is based in|is a|textile mill|weaving)/i);
+        if (startMatch && startMatch[1]) setSupplierName(startMatch[1].trim());
+      }
 
       const locationMatch = aiMessage.match(/(?:based in|located in|in)\s*([a-zA-Z\s]+?)(?:\s+we|\s+our|\s+and|\.|$)/i);
       if (locationMatch && locationMatch[1]) {
-        const city = locationMatch[1].trim().split(" ")[0];
+        const rawCity = locationMatch[1].trim();
+        const parts = rawCity.split(/[\s,]+/);
+        const city = parts[0];
         setSupplierCity(city);
-        setSupplierState("Gujarat");
+        
+        let state = detectedState || "Gujarat";
+        if (!detectedState && parts.length > 1) {
+          const possibleState = parts[1];
+          if (statesList.some(s => s.toLowerCase() === possibleState.toLowerCase())) {
+            state = possibleState;
+          }
+        }
+        setSupplierState(state);
         setSupplierAddress(`${city} Textile Hub, ${city}`);
       }
 
-      const moqMatch = aiMessage.match(/(?:moq|minimum|order)\s*(?:of|is)?\s*(\d+)/i);
+      const moqMatch = aiMessage.match(/(?:moq|minimum|order|limit)\s*(?:of|is)?\s*(\d+)/i);
       if (moqMatch && moqMatch[1]) setSupplierMOQ(parseInt(moqMatch[1]));
+
+      if (phoneMatch && phoneMatch[0]) {
+        setSupplierPhone(phoneMatch[0].trim());
+      }
 
       // Extract Fabrics
       const fabricsList = ["cotton", "silk", "denim", "linen", "polyester", "wool"];
@@ -253,6 +317,12 @@ export const OnboardingPage: React.FC = () => {
               type="text"
               value={aiMessage}
               onChange={(e) => setAiMessage(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  handleAIChat();
+                }
+              }}
               placeholder="Describe your business..."
               className="flex-1 rounded-xl bg-slate-50 border border-slate-200 px-3 py-2 text-xs focus:border-teal-700 focus:outline-none focus:ring-1 focus:ring-violet-600"
             />
